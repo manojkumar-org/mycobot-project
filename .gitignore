@@ -49,3 +49,22 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# --- added 2026-09-28 for this repo: ROS 2 (colcon), Python, Jupyter ---
+install/
+log/
+__pycache__/
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# Course zips (two are 276 MB, over GitHub's 100 MB file limit)
+*.zip
+
+# --- Large course-provided files: kept on the laptop, NOT in the repo (see README "Not in this repo") ---
+# Robot 3D models (.dae/.STEP/.stl), 277 MB per copy, identical in ros2_ws and pp_moveit_ws
+mycobot_description/
+# YOLO weights for Lab 8 (40 MB)
+*.pt
+
