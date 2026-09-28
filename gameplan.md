@@ -37,11 +37,15 @@ Labs 2–6 load `mycobot_280_gazebo.urdf` from the repo root; Labs 3–5 also im
 | Machine | What runs there | Why |
 |---|---|---|
 | **Lab laptop** (Ubuntu 24.04, ROS 2 Jazzy, `~/venvs/mycobot`) | Labs 1–6 notebooks, RViz2 | no robot needed |
-| **Robot Pi** `ssh cobot@129.217.130.85` (VS Code Remote-SSH) | Labs 7–9: serial, `mycobot_control`, pick & place | robot is wired to the Pi's UART `/dev/serial0`; the laptop has **no** serial/USB link to the robot |
+| **Robot Pi** `ssh cobot` (= `cobot@129.217.130.85`) | Labs 7–9: serial, `mycobot_control`, Jupyter kernel, pick & place | robot is wired to the Pi's UART `/dev/serial0`; the laptop has **no** serial/USB link to the robot |
 
-Pi facts still to fill in (on the Pi: `lsb_release -ds; uname -m; ls /opt/ros; free -h`):
-OS `TODO` · arch `TODO` (Claude Code needs `aarch64`) · ROS distro `TODO` · RAM `TODO` · internet `TODO` ·
-group `ROS_DOMAIN_ID` `TODO` (ask TAs).
+**Claude Code runs on the laptop, never on the Pi.** VS Code Remote-SSH to the Pi is fine, but with **no extensions
+installed on the Pi** (`~/.vscode-server/extensions` empty). On 2026-09-28 Claude Code + remote extensions (Pylance
+~730 MB, Copilot) used up the Pi's 1.8 GB and hung it (SSH banner timeouts). Claude reaches the Pi through SSH (§6c).
+
+Pi facts: hostname `cobot-pi1` · **RAM 1.8 GB, no swap** (budget: ROS + Jupyter only; ~1.2 GB available after the
+cleanup) · arch **arm64** · Python 3.12 · venv `~/venvs/mycobot` · serial read works at `/dev/serial0`, 1 Mbaud.
+Still `TODO` (on the Pi: `lsb_release -ds; ls /opt/ros`): OS · ROS distro · internet · group `ROS_DOMAIN_ID` (ask TAs).
 
 ---
 
@@ -165,15 +169,15 @@ cd ~/mycobot-project && jupyter lab
 ```
 Smoke test: `import rclpy, roboticstoolbox as rtb, spatialmath; print("ok")`.
 
-### 6b. Robot Pi (in progress)
-Full steps (clone, VS Code Remote-SSH, venv, Jupyter kernel) are in **README.md → "Work on the robot Pi"**. Checklist:
-- [ ] Clone with a fine-grained token (owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*, 30 days)
-- [ ] VS Code Remote-SSH to `cobot@129.217.130.85`, open `~/mycobot-project`
-- [ ] venv + Jupyter kernel + `ipympl`; ROS sourced in `~/.bashrc`
-- [ ] Build: `cd ros2_ws && colcon build --symlink-install --packages-select mycobot_description mycobot_control`
-- [ ] Port: `ls -l /dev/serial0; readlink -f /dev/serial0; groups` (need `dialout`); `fuser -v /dev/serial0` (empty = free)
-- [ ] Claude Code: Extensions → Claude Code → *Install in SSH*; fallback `curl -fsSL https://claude.ai/install.sh | bash`, then `claude` → `/login`
-- [ ] `tmux` for the controller (survives SSH drops)
+### 6b. Robot Pi
+Steps are in **README.md → "Robot Pi"** (bring-up table, one-time setup, troubleshooting). Checklist:
+- [x] Clone with a fine-grained token (owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*, 30 days)
+- [x] Claude Code and all VS Code remote extensions removed from the Pi; Remote-SSH works without extensions
+- [x] venv `~/venvs/mycobot` + JupyterLab + `ipympl` + `pyserial`; Jupyter reached via SSH tunnel from the laptop
+- [x] Serial port works: Lab 7 task 7 read six angles
+- [ ] SSH key + `Host cobot` alias (+ optional sshfs mount) on the laptop (§6c), so Claude can run `ssh cobot '…'`
+- [ ] Build for Part 2: `colcon build --symlink-install --parallel-workers 1 --packages-select mycobot_description mycobot_control`
+- [ ] `~/rosenv.sh` on the Pi (§6c), so non-interactive `ssh cobot '…'` commands see ROS and the venv
 
 Read-only probe (moves nothing), to confirm the port:
 ```python
@@ -182,6 +186,44 @@ s = serial.Serial('/dev/serial0', 1_000_000, timeout=0.5)
 s.reset_input_buffer(); s.write(bytes([0xFE,0xFE,0x02,0x20,0xFA])); s.flush(); time.sleep(0.2)
 print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 ```
+
+### 6c. Working on the Pi from the laptop (Claude Code + VS Code stay on the laptop)
+
+| Need | How |
+|---|---|
+| Run a command on the Pi | `ssh cobot '<command>'`; with ROS: `ssh cobot 'source ~/rosenv.sh && ros2 topic list'` |
+| Read/edit Pi files with normal tools | sshfs mount: Pi `~/mycobot-project` appears at laptop `~/pi-mycobot` |
+| Long-running things (controller, Jupyter) | `tmux` **on the Pi**, so they survive SSH drops |
+| Notebooks | JupyterLab runs on the Pi (kernel there sees `/dev/serial0`); laptop connects through an SSH port forward |
+| Git for the Pi clone | run git on the Pi: `ssh cobot 'cd ~/mycobot-project && git status'` (git over sshfs is slow) |
+
+Laptop `~/.ssh/config` (one shared connection, reused by every `ssh cobot` call → fast and light on the Pi):
+```
+Host cobot 129.217.130.85
+  HostName 129.217.130.85
+  User cobot
+  IdentityFile ~/.ssh/id_ed25519
+  ConnectTimeout 30
+  ServerAliveInterval 30
+  ServerAliveCountMax 4
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 10m
+```
+Key (once): `ssh-keygen -t ed25519` then `ssh-copy-id cobot`. Claude's `ssh` calls can't type passwords, so the key is required.
+
+Pi `~/rosenv.sh` (non-interactive SSH skips `~/.bashrc`, so ROS must be sourced explicitly):
+```bash
+source /opt/ros/<distro>/setup.bash
+[ -f ~/mycobot-project/ros2_ws/install/setup.bash ] && source ~/mycobot-project/ros2_ws/install/setup.bash
+source ~/venvs/mycobot/bin/activate
+```
+
+Mount / unmount (laptop): `sshfs cobot:/home/cobot/mycobot-project ~/pi-mycobot -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3`
+→ `fusermount -u ~/pi-mycobot`. Avoid broad searches over the mount (the 277 MB `mycobot_description` is slow over the network).
+
+Jupyter: see the bring-up table in README.md (Pi `tmux` + `jupyter lab --no-browser --ip=127.0.0.1 --port 8888`,
+laptop `ssh -N -L 8888:localhost:8888 cobot`, browser with the token link).
 
 ---
 
@@ -194,12 +236,31 @@ print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 | 3–5 | constants; `stop_frame=bytes([0xFE,0xFE,0x02,0x29,0xFA])`, `read_frame=bytes([0xFE,0xFE,0x02,0x20,0xFA])`; print hex |
 | 6 | open `MyCobotSerialInterface` **once** |
 | 7 | `measured_deg = ser.read_angles_deg(timeout_s=0.5)`; **`None` → stop, check power/port** |
-| 8 | `diff_deg = measured_arr - home_deg` |
-| 9 | target from the reading, only joint 1 +10°: `[m + (10 if i == 0 else 0) for i, m in enumerate(measured_deg)]`, `speed = 20` |
+| 8 | `diff_deg = measured_arr - home_deg`. Large values are fine: the arm is parked, not at zero |
+| (extra) | `start_deg = list(measured_deg)` to return to the parked pose at the end |
+| 9 | `target_deg = list(measured_deg); target_deg[0] += 10`, `speed = 20`; check with `check_target` (below) |
 | 10 | send, wait 3 s, stop cell ready |
 | 11–12 | `error_deg = target_arr - measured_after_arr`; bar plot |
 | 13–14 | `ser.stop_motion()`, `ser.resume_motion()`, read back |
+| (extra) | back to `start_deg` at speed 20 (only after checking the move is ~−10° on J1) |
 | 15 | `ser.close()` **before** Part 2 |
+
+Facts from the robot (2026-09-28): powered servos hold position ("motors locked") — normal, not the stop state.
+Parked pose read: `[7.2, -99.31, -70.92, 81.38, 90.08, -74.26]` (folded arm). **Never send all-zeros from there**
+(large motion on every joint); move one joint at a time, 5–15°, from the measured pose. Careful with J2/J3 when folded.
+
+Joint order: J1 base · J2 shoulder · J3 elbow · J4 wrist bend · J5 wrist turn · J6 flange (index 0–5).
+Safety check for any manual target (paste once, call before every `send_angles_deg`):
+```python
+limits = np.array([[-168, 168], [-135, 135], [-150, 150], [-145, 145], [-165, 165], [-180, 180]])  # myCobot 280 (deg)
+def check_target(target_deg, max_step=15):
+    cur = np.array(ser.read_angles_deg(timeout_s=0.5)); tgt = np.array(target_deg, dtype=float)
+    assert tgt.shape == (6,), "need exactly 6 angles"
+    assert np.all((tgt >= limits[:, 0]) & (tgt <= limits[:, 1])), f"outside joint limits: {tgt}"
+    for j in range(6): print(f"J{j+1}: {cur[j]:8.2f} -> {tgt[j]:8.2f}   ({tgt[j]-cur[j]:+.2f}°)")
+    assert np.all(np.abs(tgt - cur) <= max_step), f"a joint moves more than {max_step}°"
+    return tgt.tolist()
+```
 
 Part 2 (tasks 16–29): launch the controller in tmux, then publish on `/mycobot/joint_command` (rad) and
 `/mycobot/joint_velocity` (rad/s: small, short, then zeros). Start with 0.1 rad/s on one joint for 1–2 s.
@@ -240,9 +301,15 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
    list/echo topics, build, and check ports. A human runs every cell that moves the robot.
 2. Before any motion: workspace clear, direction understood, stop path ready, small + slow first.
 3. Serial notebook and `mycobot_control` never at the same time (`fuser -v /dev/serial0`).
-4. Don't commit `pdfs/`, tokens, `build/ install/ log/`, or weights.
+4. Don't commit `pdfs/`, tokens, `build/ install/ log/`, or weights. Never store the GitHub token in a file inside the
+   repo (`.git/info/exclude` covers `pdfs/` and `*token*` on the laptop; add the same on the Pi).
 5. Hardcoded paths (§4, §5) are known and left as-is. Change only when a lab needs it.
-6. Shared Pi, end of session: push your work, `/logout` in Claude, `git credential-cache exit`.
+6. Shared Pi, end of session: push your work from the Pi, `ssh cobot 'git credential-cache exit'`, stop Jupyter/tmux
+   sessions you started, `fusermount -u ~/pi-mycobot` on the laptop.
+7. Never install or run Claude Code on the Pi. VS Code Remote-SSH is allowed, but never click "Install in SSH" for
+   extensions (Pylance/Copilot alone filled the Pi's RAM). Notebooks: JupyterLab on the Pi + port forward.
+   Pi-side VS Code settings: `~/.vscode-server/data/Machine/settings.json` (watcher excludes for build/, install/,
+   log/, mycobot_description/).
 
 ---
 
@@ -255,6 +322,8 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
   Labs 2/7 need `rclpy` (sed line in §6a).
 - Lab 1 notebook, task 26: run cells are in the wrong order (`ani_psi` before `ani_theta`); run theta first.
 - Lab 1 notebook, task 11: compare with `np.isclose`, not `==` (floating-point noise makes `==` fail).
+- `pdfs/Serial_Communication_Robot_Control.pdf` was committed in `7621d81` (pushed; private repo). Untrack with
+  `git rm --cached -r pdfs/` if course PDFs shouldn't be in the repo.
 
 ---
 
@@ -263,7 +332,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 1. Is Lab 8 (YOLO, April PDF) still required, or only Lab 9 (MoveIt, Sep 23 PDF)? The 25.09 intro slides only show Lab 9.
 2. Which `ROS_DOMAIN_ID` should our group use? Several robots on one network otherwise see each other's topics.
 3. Where do we get `mycobot_280_gazebo.urdf` (and the optional `pointcloud.mat` for Lab 1)?
-4. Pi environment: which OS/ROS, is a venv/Jupyter prepared, does the Pi have internet (git, pip, Claude Code)?
+4. Pi: which OS/ROS is installed; may we add swap (1.8 GB RAM, no swap)?
 5. Upload deadlines, interview date and format; is this a 2-week block?
 
 ---
@@ -273,6 +342,8 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | Date | Done |
 |---|---|
 | 2026-09-27 | Course zips unpacked into 3 workspaces; day-0 plan. |
-| 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. |
+| 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. Claude Code + VS Code remote extensions on the Pi filled its RAM and hung it (SSH banner timeouts); removed them, Claude stays on the laptop (§6c). |
+| 2026-09-28 (afternoon) | Pi: venv + JupyterLab, opened in the laptop browser through an SSH tunnel. **Lab 7 Part 1 tasks 1–8 done**: port opened, six angles read (parked pose), difference from home computed. Tasks 9–15 code prepared (joint 1 +10°, `check_target`, return to `start_deg`). README cleaned (bring-up table, one-time setup, troubleshooting). |
 
-**Next:** finish §6b on the Pi → read-only probe → Lab 7 tasks 1–8 → first small move → Part 2.
+**Next:** Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to start, close) → laptop SSH key
+(§6c) → build `mycobot_control` on the Pi → Part 2 (tasks 16–29) → answer the PDF short questions.
