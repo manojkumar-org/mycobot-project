@@ -10,26 +10,22 @@ and the course PDF `SystemSetup_Ubuntu_ROS2.pdf` (Moodle).
 ├── *Template.ipynb        lab notebooks (Labs 1–8): work here
 ├── helperFunctions.py     used by the IK / Diff / TCP notebooks
 ├── serial_iface.py        used by Lab 7
-├── ros2_ws/src/           Labs 2–7 ROS 2 packages   (mycobot_control)
-├── pp_moveit_ws/src/      Lab 9 ROS 2 packages      (brain, vision, controller, interfaces, MoveIt 2 config)
+├── ros2_ws/src/           Labs 2–7 ROS 2 packages   (mycobot_control, mycobot_description)
+├── pp_moveit_ws/src/      Lab 9 ROS 2 packages      (brain, vision, controller, interfaces, MoveIt 2 config, mycobot_description)
 └── pp_yolo_ws/src/        Lab 8 ROS 2 packages      (vision, mycobot_msgs, mycobot_motion_v1)
 ```
 There are 3 separate workspaces because some package names (`mycobot_description`, `mycobot_controller`) exist
 in more than one course zip, and duplicate names break `colcon build`.
 
-## Not in this repo (large course files): get them from Moodle
+`mycobot_description` (robot URDFs + 3D models, 277 MB on disk) is included **complete** in both `ros2_ws` and
+`pp_moveit_ws` for now, so a fresh clone builds without extra downloads. The two copies are identical, so git stores
+the files only once (about 75 MB compressed). The first clone takes a while.
+
+## Not in this repo: get them from Moodle
 | What | Size | Where it goes | From |
 |---|---|---|---|
-| `mycobot_description` (robot 3D models) | 277 MB | `ros2_ws/src/` **and** `pp_moveit_ws/src/` | `FK_to_TP Control.zip` (or `Pick and Place Packages.zip`) |
 | `best.pt` (YOLO weights) | 40 MB | `pp_yolo_ws/weights/` | `Lab 09 PP.zip` |
 | `mycobot_280_gazebo.urdf` | — | repo root (next to the notebooks) | Moodle / TAs (not in any zip) |
-
-After cloning, for example:
-```bash
-unzip "FK_to_TP Control.zip" "FK_to_TP Control/mycobot_description/*" -d /tmp/fk
-cp -r "/tmp/fk/FK_to_TP Control/mycobot_description" ros2_ws/src/
-cp -r "/tmp/fk/FK_to_TP Control/mycobot_description" pp_moveit_ws/src/
-```
 
 ## Build (after ROS 2 Jazzy is installed)
 ```bash
