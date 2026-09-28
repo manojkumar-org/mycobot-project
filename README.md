@@ -4,9 +4,12 @@ Group repo for the **CoRobot Lab** at TU Dortmund (myCobot 280 Pi, ROS 2 Jazzy o
 Setup: ROS 2 Jazzy per the [official install guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 and the course PDF `SystemSetup_Ubuntu_ROS2.pdf` (Moodle).
 
+**Project map, robot interface and game plan: see [CLAUDE.md](CLAUDE.md).**
+
 ## Layout
 ```
 .
+├── CLAUDE.md              project map + game plan (also read automatically by Claude Code)
 ├── *Template.ipynb        lab notebooks (Labs 1–8): work here
 ├── helperFunctions.py     used by the IK / Diff / TCP notebooks
 ├── serial_iface.py        used by Lab 7
@@ -19,7 +22,7 @@ in more than one course zip, and duplicate names break `colcon build`.
 
 `mycobot_description` (robot URDFs + 3D models, 277 MB on disk) is included **complete** in both `ros2_ws` and
 `pp_moveit_ws` for now, so a fresh clone builds without extra downloads. The two copies are identical, so git stores
-the files only once (about 75 MB compressed). The first clone takes a while.
+the files only once (about 37 MB compressed). The first clone takes a while.
 
 ## Not in this repo: get them from Moodle
 | What | Size | Where it goes | From |
@@ -50,8 +53,9 @@ git push --dry-run   # "Everything up-to-date" = push access works
 **3. Python environment** (the notebooks and `colcon` run from it):
 ```bash
 python3 -m venv --system-site-packages ~/venvs/mycobot && source ~/venvs/mycobot/bin/activate
-python -m pip install jupyterlab roboticstoolbox-python spatialmath-python sympy pyserial pymycobot colcon-common-extensions "numpy<2"
+python -m pip install jupyterlab ipykernel ipympl roboticstoolbox-python spatialmath-python sympy pyserial pymycobot colcon-common-extensions "numpy<2"
 ```
+`ipympl` is required: every notebook starts with `%matplotlib widget`.
 
 ## Build (after ROS 2 Jazzy is installed)
 ```bash
@@ -67,3 +71,67 @@ git pull --rebase    # first: get what others (or you, from another machine) pus
 git push             # before you leave
 ```
 **Leaving a shared PC:** run `gh auth logout` or `git credential-cache exit`. On a shared account, also delete the clone.
+
+## Work on the robot Pi (Labs 7–9, over SSH)
+The robot is wired to the Pi's serial port `/dev/serial0`, so Labs 7–9 (serial notebook, `mycobot_control`,
+pick & place) run **on the Pi**. The laptop is only the screen.
+```bash
+ssh cobot@129.217.130.85
+```
+
+**1. Check the Pi** (once):
+```bash
+lsb_release -ds; uname -m; ls /opt/ros; python3 --version; free -h
+ls -l /dev/serial0; groups          # 'dialout' needed for the serial port
+ping -c1 -W2 github.com >/dev/null && echo "internet ok" || echo "NO internet"
+```
+
+**2. Clone** with steps 1–2 above (fine-grained token + `credential.helper cache`), then `git checkout myCobot-lab`.
+
+**3. Connect VS Code** (on the laptop): install the **Remote - SSH** extension → Ctrl+Shift+P →
+*Remote-SSH: Connect to Host…* → `cobot@129.217.130.85` → *File → Open Folder* → `~/mycobot-project`.
+The status bar shows `SSH: 129.217.130.85`; every terminal in this window now runs on the Pi.
+Password on every connect? Once on the laptop: `ssh-keygen -t ed25519 && ssh-copy-id cobot@129.217.130.85`.
+
+**4. Python environment on the Pi** (in a VS Code terminal):
+```bash
+python3 -m venv --system-site-packages ~/venvs/mycobot && source ~/venvs/mycobot/bin/activate
+python -m pip install jupyterlab ipykernel ipympl pyserial pymycobot "numpy<2"
+python -m ipykernel install --user --name mycobot --display-name "Python (mycobot)"
+```
+
+**5. Make ROS visible to the notebook kernel.** A kernel started by VS Code doesn't run your `source` commands,
+so put them in `~/.bashrc` on the Pi (replace `<distro>` with what `ls /opt/ros` printed):
+```bash
+cat >> ~/.bashrc <<'EOF'
+source /opt/ros/<distro>/setup.bash
+[ -f ~/mycobot-project/ros2_ws/install/setup.bash ] && source ~/mycobot-project/ros2_ws/install/setup.bash
+EOF
+source ~/.bashrc
+cd ~/mycobot-project/ros2_ws && colcon build --symlink-install --packages-select mycobot_description mycobot_control
+```
+Then Ctrl+Shift+P → *Remote-SSH: Kill VS Code Server on Host…*, and reconnect, so VS Code picks up the new environment.
+
+**6a. Jupyter inside VS Code** (recommended): in the SSH window install the **Python** and **Jupyter** extensions
+(button *Install in SSH: …*). Open a notebook → *Select Kernel* → *Jupyter Kernel…* → **Python (mycobot)**.
+
+**6b. Or JupyterLab in the laptop browser:**
+```bash
+# laptop: forward the port
+ssh -L 8888:localhost:8888 cobot@129.217.130.85
+# Pi (inside that ssh, ideally in tmux so it survives disconnects)
+source ~/venvs/mycobot/bin/activate && cd ~/mycobot-project && jupyter lab --no-browser --port 8888
+```
+Open the `http://localhost:8888/?token=…` link it prints, on the laptop.
+
+**7. Check** in a notebook cell:
+```python
+import sys, os, serial, ipympl
+print(sys.executable)                   # ~/venvs/mycobot/bin/python
+print(os.path.exists('/dev/serial0'))   # True
+import rclpy; print("ROS ok")           # fails → step 5 not picked up (reconnect VS Code)
+```
+
+**Rules on the Pi:** the serial notebook and `mycobot_control` can't hold the port at the same time
+(`fuser -v /dev/serial0`); run the controller in `tmux`. Robot-safety rules and the Lab 7 runbook: [CLAUDE.md](CLAUDE.md) §7, §9.
+**Leaving:** push your work, then `git credential-cache exit` (and `/logout` if you used Claude Code on the Pi).
