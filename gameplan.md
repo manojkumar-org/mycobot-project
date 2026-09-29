@@ -1,6 +1,6 @@
 # CoRobot Lab: project map + game plan
 
-Reference for the group and for Claude Code (on the lab laptop and on the robot's Raspberry Pi).
+Reference for the group (on the lab laptop and on the robot's Raspberry Pi).
 Replaces the old `GAME-PLAN.md` (merged here 2026-09-28). Last updated **2026-09-28**.
 
 Course: CoRobot Lab, TU Dortmund, **Mon 28.09.2026**, Mo–Fr 9:00–17:00, IRF Mobile Robot Lab Area.
@@ -39,9 +39,9 @@ Labs 2–6 load `mycobot_280_gazebo.urdf` from the repo root; Labs 3–5 also im
 | **Lab laptop** (Ubuntu 24.04, ROS 2 Jazzy, `~/venvs/mycobot`) | Labs 1–6 notebooks, RViz2 | no robot needed |
 | **Robot Pi** `ssh cobot` (= `cobot@129.217.130.85`) | Labs 7–9: serial, `mycobot_control`, Jupyter kernel, pick & place | robot is wired to the Pi's UART `/dev/serial0`; the laptop has **no** serial/USB link to the robot |
 
-**Claude Code runs on the laptop, never on the Pi.** VS Code Remote-SSH to the Pi is fine, but with **no extensions
-installed on the Pi** (`~/.vscode-server/extensions` empty). On 2026-09-28 Claude Code + remote extensions (Pylance
-~730 MB, Copilot) used up the Pi's 1.8 GB and hung it (SSH banner timeouts). Claude reaches the Pi through SSH (§6c).
+**Work from the laptop and keep the Pi light.** VS Code Remote-SSH to the Pi is fine, but with **no extensions
+installed on the Pi** (`~/.vscode-server/extensions` empty). On 2026-09-28 remote extensions (Pylance ~730 MB,
+Copilot) used up the Pi's 1.8 GB and hung it (SSH banner timeouts). Reach the Pi through SSH (§6c).
 
 Pi facts: hostname `cobot-pi1` · **RAM 1.8 GB, no swap** (budget: ROS + Jupyter only; ~1.2 GB available after the
 cleanup) · arch **arm64** · Python 3.12 · venv `~/venvs/mycobot` · serial read works at `/dev/serial0`, 1 Mbaud.
@@ -53,7 +53,7 @@ Still `TODO` (on the Pi: `lsb_release -ds; ls /opt/ros`): OS · ROS distro · in
 
 ```
 ~/mycobot-project/                (same path on laptop and Pi)
-├── CLAUDE.md                     this file
+├── gameplan.md                   this file
 ├── README.md                     machine setup: GitHub login, clone, venv, build, Jupyter over SSH
 ├── *Template.ipynb               8 lab notebooks, WORK HERE (see §1)
 ├── helperFunctions.py            used by IK / Differential / TCP notebooks
@@ -172,10 +172,10 @@ Smoke test: `import rclpy, roboticstoolbox as rtb, spatialmath; print("ok")`.
 ### 6b. Robot Pi
 Steps are in **README.md → "Robot Pi"** (bring-up table, one-time setup, troubleshooting). Checklist:
 - [x] Clone with a fine-grained token (owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*, 30 days)
-- [x] Claude Code and all VS Code remote extensions removed from the Pi; Remote-SSH works without extensions
+- [x] All VS Code remote extensions removed from the Pi; Remote-SSH works without extensions
 - [x] venv `~/venvs/mycobot` + JupyterLab + `ipympl` + `pyserial`; Jupyter reached via SSH tunnel from the laptop
 - [x] Serial port works: Lab 7 task 7 read six angles
-- [ ] SSH key + `Host cobot` alias (+ optional sshfs mount) on the laptop (§6c), so Claude can run `ssh cobot '…'`
+- [ ] SSH key + `Host cobot` alias (+ optional sshfs mount) on the laptop (§6c), so `ssh cobot '…'` works without a password
 - [ ] Build for Part 2: `colcon build --symlink-install --parallel-workers 1 --packages-select mycobot_description mycobot_control`
 - [ ] `~/rosenv.sh` on the Pi (§6c), so non-interactive `ssh cobot '…'` commands see ROS and the venv
 
@@ -187,7 +187,7 @@ s.reset_input_buffer(); s.write(bytes([0xFE,0xFE,0x02,0x20,0xFA])); s.flush(); t
 print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 ```
 
-### 6c. Working on the Pi from the laptop (Claude Code + VS Code stay on the laptop)
+### 6c. Working on the Pi from the laptop (VS Code stays on the laptop)
 
 | Need | How |
 |---|---|
@@ -210,7 +210,7 @@ Host cobot 129.217.130.85
   ControlPath ~/.ssh/cm-%r@%h:%p
   ControlPersist 10m
 ```
-Key (once): `ssh-keygen -t ed25519` then `ssh-copy-id cobot`. Claude's `ssh` calls can't type passwords, so the key is required.
+Key (once): `ssh-keygen -t ed25519` then `ssh-copy-id cobot`. Scripted `ssh` calls can't type passwords, so the key is required.
 
 Pi `~/rosenv.sh` (non-interactive SSH skips `~/.bashrc`, so ROS must be sourced explicitly):
 ```bash
@@ -294,11 +294,11 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 
 ---
 
-## 9. Rules for working on the robot (humans and Claude)
+## 9. Rules for working on the robot
 
-1. **Claude never sends motion commands** (no `send_angles_deg`, no publishing to `/mycobot/joint_command`,
-   `/mycobot/joint_velocity`, `/mycobot/ee_pose`, no pymycobot moves). Claude may read files and logs, read angles,
-   list/echo topics, build, and check ports. A human runs every cell that moves the robot.
+1. **A human runs every cell or command that moves the robot** (`send_angles_deg`, publishing to
+   `/mycobot/joint_command`, `/mycobot/joint_velocity`, `/mycobot/ee_pose`, pymycobot moves). Automated tools only
+   read files and logs, read angles, list/echo topics, build, and check ports.
 2. Before any motion: workspace clear, direction understood, stop path ready, small + slow first.
 3. Serial notebook and `mycobot_control` never at the same time (`fuser -v /dev/serial0`).
 4. Don't commit `pdfs/`, tokens, `build/ install/ log/`, or weights. Never store the GitHub token in a file inside the
@@ -306,8 +306,8 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 5. Hardcoded paths (§4, §5) are known and left as-is. Change only when a lab needs it.
 6. Shared Pi, end of session: push your work from the Pi, `ssh cobot 'git credential-cache exit'`, stop Jupyter/tmux
    sessions you started, `fusermount -u ~/pi-mycobot` on the laptop.
-7. Never install or run Claude Code on the Pi. VS Code Remote-SSH is allowed, but never click "Install in SSH" for
-   extensions (Pylance/Copilot alone filled the Pi's RAM). Notebooks: JupyterLab on the Pi + port forward.
+7. Keep the Pi light. VS Code Remote-SSH is allowed, but never click "Install in SSH" for
+   extensions (Pylance and Copilot filled the Pi's RAM). Notebooks: JupyterLab on the Pi + port forward.
    Pi-side VS Code settings: `~/.vscode-server/data/Machine/settings.json` (watcher excludes for build/, install/,
    log/, mycobot_description/).
 
@@ -342,7 +342,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | Date | Done |
 |---|---|
 | 2026-09-27 | Course zips unpacked into 3 workspaces; day-0 plan. |
-| 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. Claude Code + VS Code remote extensions on the Pi filled its RAM and hung it (SSH banner timeouts); removed them, Claude stays on the laptop (§6c). |
+| 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. VS Code remote extensions on the Pi filled its RAM and hung it (SSH banner timeouts); removed them, work from the laptop (§6c). |
 | 2026-09-28 (afternoon) | Pi: venv + JupyterLab, opened in the laptop browser through an SSH tunnel. **Lab 7 Part 1 tasks 1–8 done**: port opened, six angles read (parked pose), difference from home computed. Tasks 9–15 code prepared (joint 1 +10°, `check_target`, return to `start_deg`). README cleaned (bring-up table, one-time setup, troubleshooting). |
 
 **Next:** Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to start, close) → laptop SSH key
