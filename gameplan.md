@@ -1,7 +1,7 @@
 # CoRobot Lab: project map + game plan
 
 Reference for the group (on the lab laptop and on the robot's Raspberry Pi).
-Replaces the old `GAME-PLAN.md` (merged here 2026-09-28). Last updated **2026-09-28**.
+Replaces the old `GAME-PLAN.md` (merged here 2026-09-28). Last updated **2026-09-29**.
 
 Course: CoRobot Lab, TU Dortmund, **Mon 28.09.2026**, Mo–Fr 9:00–17:00, IRF Mobile Robot Lab Area.
 Moodle: https://moodle.tu-dortmund.de/course/view.php?id=59336 · TAs: Shreyas Desikan, Kavish Punitbhai Gajjar
@@ -59,6 +59,7 @@ Still `TODO` (on the Pi: `lsb_release -ds; ls /opt/ros`): OS · ROS distro · in
 ├── helperFunctions.py            used by IK / Differential / TCP notebooks
 ├── serial_iface.py               used by Lab 7 (byte-identical copy of ros2_ws/.../mycobot_control/serial_iface.py)
 │                                 (+ mycobot_280_gazebo.urdf here once you have it)
+├── solutions/                    worked solutions with explanations, one notebook per lab (compare with the templates)
 ├── ros2_ws/src/                  Labs 2–7  (from FK_to_TP Control.zip): mycobot_control, mycobot_description
 ├── pp_moveit_ws/src/             Lab 9     (from Pick and Place Packages.zip): brain, vision, controller, interfaces, MoveIt 2 config, 280pi tools, mycobot_description
 ├── pp_yolo_ws/src/               Lab 8     (from Lab 09 PP.zip): vision (YOLO), mycobot_msgs, mycobot_motion_v1
@@ -170,7 +171,7 @@ cd ~/mycobot-project && jupyter lab
 Smoke test: `import rclpy, roboticstoolbox as rtb, spatialmath; print("ok")`.
 
 ### 6b. Robot Pi
-Steps are in **README.md → "Robot Pi"** (bring-up table, one-time setup, troubleshooting). Checklist:
+Steps are in **README.md → "Robot Pi"** (Start / Stop steps, one-time setup, troubleshooting). Checklist:
 - [x] Clone with a fine-grained token (owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*, 30 days)
 - [x] All VS Code remote extensions removed from the Pi; Remote-SSH works without extensions
 - [x] venv `~/venvs/mycobot` + JupyterLab + `ipympl` + `pyserial`; Jupyter reached via SSH tunnel from the laptop
@@ -318,8 +319,6 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 - `mycobot_description` duplicated in two workspaces (277 MB each); 6 unused robot variants, 57 MB STEP file.
 - TODO `description`/`license` in 7 `setup.py` and 5 `package.xml`; no top-level LICENSE.
 - Bare `except:` in `pp_moveit_ws/src/mycobot_280pi/mycobot_280pi/listen_real_service.py:40,51`.
-- Laptop venv `pyvenv.cfg` still says `include-system-site-packages = false`, and `ipympl` isn't installed; fix before
-  Labs 2/7 need `rclpy` (sed line in §6a).
 - Lab 1 notebook, task 26: run cells are in the wrong order (`ani_psi` before `ani_theta`); run theta first.
 - Lab 1 notebook, task 11: compare with `np.isclose`, not `==` (floating-point noise makes `==` fail).
 - `pdfs/Serial_Communication_Robot_Control.pdf` was committed in `7621d81` (pushed; private repo). Untrack with
@@ -344,6 +343,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | 2026-09-27 | Course zips unpacked into 3 workspaces; day-0 plan. |
 | 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. VS Code remote extensions on the Pi filled its RAM and hung it (SSH banner timeouts); removed them, work from the laptop (§6c). |
 | 2026-09-28 (afternoon) | Pi: venv + JupyterLab, opened in the laptop browser through an SSH tunnel. **Lab 7 Part 1 tasks 1–8 done**: port opened, six angles read (parked pose), difference from home computed. Tasks 9–15 code prepared (joint 1 +10°, `check_target`, return to `start_deg`). README cleaned (bring-up table, one-time setup, troubleshooting). |
+| 2026-09-29 | Laptop env complete: venv sees system packages, `ipympl` installed, `ros2_ws` built, smoke test and `pip check` pass. README rewritten (Pi Start / Stop steps). `solutions/` written: worked solutions with explanations for Labs 1–9 (see `solutions/README.md`; Lab 7/8 run against a simulated robot by default, Lab 9 is the algorithmic core on synthetic data). |
 
 **Next:** Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to start, close) → laptop SSH key
 (§6c) → build `mycobot_control` on the Pi → Part 2 (tasks 16–29) → answer the PDF short questions.

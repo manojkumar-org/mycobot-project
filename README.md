@@ -12,6 +12,7 @@ Laptop: Ubuntu 24.04 + ROS 2 Jazzy. The robot has its own Raspberry Pi; you reac
 ├── *Template.ipynb        lab notebooks (Labs 1–8): work here
 ├── helperFunctions.py     used by the IK / Diff / TCP notebooks
 ├── serial_iface.py        used by Lab 7
+├── solutions/             worked solutions with explanations (one notebook per lab)
 ├── ros2_ws/src/           Labs 2–7 (mycobot_control, mycobot_description)
 ├── pp_moveit_ws/src/      Lab 9    (brain, vision, controller, interfaces, MoveIt 2 config, mycobot_description)
 └── pp_yolo_ws/src/        Lab 8    (vision, mycobot_msgs, mycobot_motion_v1)
