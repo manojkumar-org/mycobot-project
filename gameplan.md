@@ -1,7 +1,7 @@
 # CoRobot Lab: project map + game plan
 
 Reference for the group (on the lab laptop and on the robot's Raspberry Pi).
-Replaces the old `GAME-PLAN.md` (merged here 2026-09-28). Last updated **2026-09-29**.
+Replaces the old `GAME-PLAN.md` (merged here 2026-09-28). Last updated **2026-09-30**.
 
 Course: CoRobot Lab, TU Dortmund, **Mon 28.09.2026**, Mo–Fr 9:00–17:00, IRF Mobile Robot Lab Area.
 Moodle: https://moodle.tu-dortmund.de/course/view.php?id=59336 · TAs: Shreyas Desikan, Kavish Punitbhai Gajjar
@@ -37,15 +37,41 @@ Labs 2–6 load `mycobot_280_gazebo.urdf` from the repo root; Labs 3–5 also im
 | Machine | What runs there | Why |
 |---|---|---|
 | **Lab laptop** (Ubuntu 24.04, ROS 2 Jazzy, `~/venvs/mycobot`) | Labs 1–6 notebooks, RViz2 | no robot needed |
-| **Robot Pi** `ssh cobot` (= `cobot@129.217.130.85`) | Labs 7–9: serial, `mycobot_control`, Jupyter kernel, pick & place | robot is wired to the Pi's UART `/dev/serial0`; the laptop has **no** serial/USB link to the robot |
+| **Robot Pi** `ssh cobot` (= `cobot@129.217.130.85`) | Labs 7–9: serial, `mycobot_control`, Jupyter kernel, pick & place | robot is wired to the Pi's UART `/dev/ttyAMA0` (= `serial0`); the laptop has **no** serial/USB link to the robot |
 
 **Work from the laptop and keep the Pi light.** VS Code Remote-SSH to the Pi is fine, but with **no extensions
 installed on the Pi** (`~/.vscode-server/extensions` empty). On 2026-09-28 remote extensions (Pylance ~730 MB,
 Copilot) used up the Pi's 1.8 GB and hung it (SSH banner timeouts). Reach the Pi through SSH (§6c).
+Claude Code runs on the laptop and uses `ssh cobot` for read-only checks only; **[Pi]** steps (sudo, tokens,
+passwords, robot motion) are run by a person (§9 rule 8). Architecture diagram: README.md → "How it runs".
 
-Pi facts: hostname `cobot-pi1` · **RAM 1.8 GB, no swap** (budget: ROS + Jupyter only; ~1.2 GB available after the
-cleanup) · arch **arm64** · Python 3.12 · venv `~/venvs/mycobot` · serial read works at `/dev/serial0`, 1 Mbaud.
-Still `TODO` (on the Pi: `lsb_release -ds; ls /opt/ros`): OS · ROS distro · internet · group `ROS_DOMAIN_ID` (ask TAs).
+Pi facts (checked 2026-09-30): hostname `cobot-pi1` · Raspberry Pi 4 Model B Rev 1.4 · **Ubuntu 24.04.5 LTS** ·
+**ROS 2 Jazzy** · **RAM 1.8 GB, no swap** (budget: ROS + Jupyter only; ~1.5 GB available at idle) · arm64 ·
+Python 3.12 · venv `~/venvs/mycobot` · internet OK (git pull from GitHub works).
+
+Serial (checked 2026-09-30): the robot UART is **`/dev/ttyAMA0`** (PL011 on GPIO 14/15, via `dtoverlay=disable-bt`;
+device-tree alias `serial0` → `serial@7e201000` = `ttyAMA0`). Ubuntu has **no udev rule** for the `/dev/serial0` link
+that Raspberry Pi OS creates, so `/dev/serial0` doesn't exist until `/etc/udev/rules.d/99-serial0.rules` is added
+(README setup step 2). The course code for Labs 7–9 opens `/dev/serial0`. Lab 7 task 7 read six angles through
+`ttyAMA0`. (Earlier notes claiming `/dev/serial0` worked on 2026-09-28 were never verified.)
+Still `TODO`: group `ROS_DOMAIN_ID` (ask TAs).
+
+**Software on the Pi per lab** (checked 2026-09-30; system `/usr/bin/python3` with ROS Jazzy sourced):
+
+| Lab | Pi part | Pi has | Pi lacks |
+|---|---|---|---|
+| 7 | whole lab | `serial`, numpy, matplotlib, `rclpy`/`sensor_msgs`/`std_msgs` (with ROS sourced) | nothing (`ipympl` only in the venv; system kernel → `%matplotlib inline`) |
+| 2 | tasks 18–29 (controller + publish `/mycobot/joint_command`) | `rclpy`, msgs | `roboticstoolbox`, `spatialmath` (tasks 1–17), RViz2 is a GUI → laptop |
+| 8 | `motion_node` (pymycobot + pump GPIO), GPIO notebook cells | `pymycobot` 4.0.7 (`~/.local`) | `RPi.GPIO`, `cv2`, `ultralytics`/`torch` (YOLO) |
+| 9 | `mycobot_controller` (pymycobot + pump GPIO) | `pymycobot` | `RPi.GPIO`, `control_msgs`, **MoveIt** (none in `/opt/ros/jazzy`), `moveit_msgs`, `cv2`, `cv_bridge` |
+| 3–5 | **not run on the Pi** (decision 2026-09-30) | | |
+
+Other facts: **the camera (Logitech C930e) is plugged into the laptop** (`/dev/video0`); the Pi's `/dev/video10–20` are its
+built-in codec devices, not a camera. `colcon` on the Pi is the apt one (`/usr/bin/colcon`), so built ROS nodes run on
+the system Python, not the venv. arm64 wheels exist for `roboticstoolbox-python`, `spatialmath-python`,
+`opencv-python`, `torch`; apt has `python3-rpi.gpio`, `python3-opencv`, `ros-jazzy-cv-bridge`, `ros-jazzy-control-msgs`,
+`ros-jazzy-moveit` (none installed). Likely split (unconfirmed, §11 Q6): robot driver + GPIO on the Pi; RViz2,
+vision (camera) and MoveIt on the laptop, talking to the Pi over ROS 2.
 
 ---
 
@@ -113,7 +139,8 @@ Hardcoded in `vision_node.py`: weights `/home/tejas/YOLO/.../best.pt` (ours: `pp
 ## 5. Robot interface (Lab 7 core)
 
 ### Serial protocol (`serial_iface.py`, class `MyCobotSerialInterface`)
-- Port **`/dev/serial0`**, **1 000 000 baud**, timeout 0.05 s. Only **one** process may hold the port.
+- Port **`/dev/ttyAMA0`** (course code uses the link `/dev/serial0`, §2), **1 000 000 baud**, timeout 0.05 s.
+  Only **one** process may hold the port.
 - Frame: `FE FE LEN CMD [payload] FA`, `LEN` = bytes from CMD through FA inclusive.
 - Commands: read angles `0x20`, send angles `0x22`, resume `0x28`, stop `0x29`, jog `0x34`.
   - read request `FE FE 02 20 FA` → reply `FE FE 0E 20 <12 bytes> FA` (6 × int16 big-endian, degrees × 100)
@@ -129,7 +156,7 @@ Hardcoded in `vision_node.py`: weights `/home/tejas/YOLO/.../best.pt` (ours: `pp
 | `/mycobot/ee_pose` | Float64MultiArray | in | `[x_mm, y_mm, z_mm, roll_deg, pitch_deg, yaw_deg]`, needs the URDF for IK |
 | `/mycobot/joint_states` | JointState | out | rad, 5 Hz |
 
-Launch params worth knowing: `port /dev/serial0`, `cmd_tick_hz 20`, `state_rate_hz 5`, `max_step_deg 2`,
+Launch params worth knowing: `port /dev/serial0` (needs the udev link, §2), `cmd_tick_hz 20`, `state_rate_hz 5`, `max_step_deg 2`,
 `allow_uninitialized False` (velocity ignored until a first angle read succeeds), `log_tx True`.
 `urdf_path` is hardcoded to `/home/mycobot/ros2_ws/src/mycobot_280_gazebo.urdf`; if that file is missing the node
 logs `urdf_path not found` and `/mycobot/ee_pose` IK is unavailable (joint topics still work).
@@ -175,15 +202,18 @@ Steps are in **README.md → "Robot Pi"** (Start / Stop steps, one-time setup, t
 - [x] Clone with a fine-grained token (owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*, 30 days)
 - [x] All VS Code remote extensions removed from the Pi; Remote-SSH works without extensions
 - [x] venv `~/venvs/mycobot` + JupyterLab + `ipympl` + `pyserial`; Jupyter reached via SSH tunnel from the laptop
-- [x] Serial port works: Lab 7 task 7 read six angles
-- [ ] SSH key + `Host cobot` alias (+ optional sshfs mount) on the laptop (§6c), so `ssh cobot '…'` works without a password
+- [x] Serial port works via `/dev/ttyAMA0`: Lab 7 task 7 read six angles
+- [x] SSH key + `Host cobot` alias on the laptop (§6c), 2026-09-30; `ssh cobot '…'` works without a password
+- [x] Pi repo on `myCobot-lab` at `070cdf2` (2026-09-30)
+- [ ] **[Pi]** udev link `/dev/serial0` → `ttyAMA0` (README setup step 2); needed before Lab 7 Part 2 / Labs 8–9
+- [ ] **[Pi]** optional: `sudo locale-gen en_US.UTF-8` (silences the `setlocale` warning on every SSH command)
 - [ ] Build for Part 2: `colcon build --symlink-install --parallel-workers 1 --packages-select mycobot_description mycobot_control`
 - [ ] `~/rosenv.sh` on the Pi (§6c), so non-interactive `ssh cobot '…'` commands see ROS and the venv
 
 Read-only probe (moves nothing), to confirm the port:
 ```python
 import serial, time
-s = serial.Serial('/dev/serial0', 1_000_000, timeout=0.5)
+s = serial.Serial('/dev/ttyAMA0', 1_000_000, timeout=0.5)
 s.reset_input_buffer(); s.write(bytes([0xFE,0xFE,0x02,0x20,0xFA])); s.flush(); time.sleep(0.2)
 print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 ```
@@ -193,12 +223,14 @@ print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 | Need | How |
 |---|---|
 | Run a command on the Pi | `ssh cobot '<command>'`; with ROS: `ssh cobot 'source ~/rosenv.sh && ros2 topic list'` |
+| Claude Code (on the laptop) | read-only `ssh cobot '…'` checks; **[Pi]** steps (sudo, tokens, motion) are prompted and run by you |
 | Read/edit Pi files with normal tools | sshfs mount: Pi `~/mycobot-project` appears at laptop `~/pi-mycobot` |
 | Long-running things (controller, Jupyter) | `tmux` **on the Pi**, so they survive SSH drops |
-| Notebooks | JupyterLab runs on the Pi (kernel there sees `/dev/serial0`); laptop connects through an SSH port forward |
+| Notebooks | JupyterLab runs on the Pi (kernel there sees `/dev/ttyAMA0`); laptop connects through an SSH port forward |
 | Git for the Pi clone | run git on the Pi: `ssh cobot 'cd ~/mycobot-project && git status'` (git over sshfs is slow) |
 
-Laptop `~/.ssh/config` (one shared connection, reused by every `ssh cobot` call → fast and light on the Pi):
+Laptop `~/.ssh/config` (installed 2026-09-30, backup `~/.ssh/config.bak-2026-09-30`; one shared connection, reused by
+every `ssh cobot` call → measured 0.96 s for the first call, 0.04 s for the next):
 ```
 Host cobot 129.217.130.85
   HostName 129.217.130.85
@@ -211,11 +243,11 @@ Host cobot 129.217.130.85
   ControlPath ~/.ssh/cm-%r@%h:%p
   ControlPersist 10m
 ```
-Key (once): `ssh-keygen -t ed25519` then `ssh-copy-id cobot`. Scripted `ssh` calls can't type passwords, so the key is required.
+Key (once, done): `ssh-keygen -t ed25519` then `ssh-copy-id cobot`. Scripted `ssh` calls can't type passwords, so the key is required.
 
 Pi `~/rosenv.sh` (non-interactive SSH skips `~/.bashrc`, so ROS must be sourced explicitly):
 ```bash
-source /opt/ros/<distro>/setup.bash
+source /opt/ros/jazzy/setup.bash
 [ -f ~/mycobot-project/ros2_ws/install/setup.bash ] && source ~/mycobot-project/ros2_ws/install/setup.bash
 source ~/venvs/mycobot/bin/activate
 ```
@@ -233,7 +265,7 @@ laptop `ssh -N -L 8888:localhost:8888 cobot`, browser with the token link).
 | Task | Action |
 |---|---|
 | 1 | read `serial_iface.py` + `mycobot_control.py` (the PDF asks for this first) |
-| 2 | `serial_port='/dev/serial0'`, `baud_rate=1_000_000`, `timeout_s=0.05` |
+| 2 | `serial_port='/dev/ttyAMA0'` (or `/dev/serial0` once the link exists), `baud_rate=1_000_000`, `timeout_s=0.05` |
 | 3–5 | constants; `stop_frame=bytes([0xFE,0xFE,0x02,0x29,0xFA])`, `read_frame=bytes([0xFE,0xFE,0x02,0x20,0xFA])`; print hex |
 | 6 | open `MyCobotSerialInterface` **once** |
 | 7 | `measured_deg = ser.read_angles_deg(timeout_s=0.5)`; **`None` → stop, check power/port** |
@@ -301,7 +333,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
    `/mycobot/joint_command`, `/mycobot/joint_velocity`, `/mycobot/ee_pose`, pymycobot moves). Automated tools only
    read files and logs, read angles, list/echo topics, build, and check ports.
 2. Before any motion: workspace clear, direction understood, stop path ready, small + slow first.
-3. Serial notebook and `mycobot_control` never at the same time (`fuser -v /dev/serial0`).
+3. Serial notebook and `mycobot_control` never at the same time (`fuser -v /dev/ttyAMA0`).
 4. Don't commit `pdfs/`, tokens, `build/ install/ log/`, or weights. Never store the GitHub token in a file inside the
    repo (`.git/info/exclude` covers `pdfs/` and `*token*` on the laptop; add the same on the Pi).
 5. Hardcoded paths (§4, §5) are known and left as-is. Change only when a lab needs it.
@@ -311,6 +343,8 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
    extensions (Pylance and Copilot filled the Pi's RAM). Notebooks: JupyterLab on the Pi + port forward.
    Pi-side VS Code settings: `~/.vscode-server/data/Machine/settings.json` (watcher excludes for build/, install/,
    log/, mycobot_description/).
+8. **[Pi] steps are run by a person.** Anything that needs sudo, a token or a password, or moves the robot, is marked
+   **[Pi]** in README/gameplan; Claude Code prompts for it with the exact commands and waits for the output.
 
 ---
 
@@ -321,6 +355,11 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 - Bare `except:` in `pp_moveit_ws/src/mycobot_280pi/mycobot_280pi/listen_real_service.py:40,51`.
 - Lab 1 notebook, task 26: run cells are in the wrong order (`ani_psi` before `ani_theta`); run theta first.
 - Lab 1 notebook, task 11: compare with `np.isclose`, not `==` (floating-point noise makes `==` fail).
+- `/dev/serial0` doesn't exist on this Ubuntu Pi image (no udev rule); robot code for Labs 7–9 opens it
+  (`mycobot_control.launch.py:13`, `mycobot_control.py:29`, `pi_motion3_node.py:41`, `motion_node.py:119`,
+  `controller.py:16`). Fix: udev link (README setup step 2), code left unchanged.
+- Every `ssh cobot` command prints `setlocale: LC_ALL: cannot change locale (en_US.UTF-8)`: laptop sends the locale,
+  the Pi lacks it. Harmless; fix with **[Pi]** `sudo locale-gen en_US.UTF-8`.
 - `pdfs/Serial_Communication_Robot_Control.pdf` was committed in `7621d81` (pushed; private repo). Untrack with
   `git rm --cached -r pdfs/` if course PDFs shouldn't be in the repo.
 
@@ -331,8 +370,11 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 1. Is Lab 8 (YOLO, April PDF) still required, or only Lab 9 (MoveIt, Sep 23 PDF)? The 25.09 intro slides only show Lab 9.
 2. Which `ROS_DOMAIN_ID` should our group use? Several robots on one network otherwise see each other's topics.
 3. Where do we get `mycobot_280_gazebo.urdf` (and the optional `pointcloud.mat` for Lab 1)?
-4. Pi: which OS/ROS is installed; may we add swap (1.8 GB RAM, no swap)?
+4. Pi (Ubuntu 24.04.5, ROS Jazzy): may we add swap (1.8 GB RAM, no swap) and the `/dev/serial0` udev rule?
 5. Upload deadlines, interview date and format; is this a 2-week block?
+6. Labs 2, 8, 9: which nodes are meant to run on the Pi and which on the laptop? The camera is on the laptop and the Pi
+   (1.8 GB) has no MoveIt. Does ROS 2 discovery between laptop and Pi work on the lab network (multicast), and with
+   which `ROS_DOMAIN_ID` (Q2)?
 
 ---
 
@@ -345,5 +387,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | 2026-09-28 (afternoon) | Pi: venv + JupyterLab, opened in the laptop browser through an SSH tunnel. **Lab 7 Part 1 tasks 1–8 done**: port opened, six angles read (parked pose), difference from home computed. Tasks 9–15 code prepared (joint 1 +10°, `check_target`, return to `start_deg`). README cleaned (bring-up table, one-time setup, troubleshooting). |
 | 2026-09-29 | Laptop env complete: venv sees system packages, `ipympl` installed, `ros2_ws` built, smoke test and `pip check` pass. README rewritten (Pi Start / Stop steps). `solutions/` written: worked solutions with explanations for Labs 1–9 (see `solutions/README.md`; Lab 7/8 run against a simulated robot by default, Lab 9 is the algorithmic core on synthetic data). |
 
-**Next:** Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to start, close) → laptop SSH key
-(§6c) → build `mycobot_control` on the Pi → Part 2 (tasks 16–29) → answer the PDF short questions.
+| 2026-09-30 | Branch workflow: `myCobot-personal` (home edits) fast-forwarded into `myCobot-lab`; Pi pulled to `070cdf2`. Laptop SSH key + `cobot` alias with connection reuse. Pi checked: Ubuntu 24.04.5, ROS Jazzy, robot UART `ttyAMA0` = `serial0` alias, but no `/dev/serial0` link on Ubuntu → udev rule (README setup step 2). README: "How it runs" architecture, `ssh cobot`, `ttyAMA0`, **[Pi]** markers. **[Pi]** udev link `/dev/serial0 -> ttyAMA0` created and verified. Per-lab Pi software checked (§2); camera found on the laptop; Labs 3–5 won't run on the Pi. |
+
+**Next:** **[Pi]** udev link `/dev/serial0` → Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to
+start, close) → **[Pi]** build `mycobot_control` → Part 2 (tasks 16–29) → answer the PDF short questions.
