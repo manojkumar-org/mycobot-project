@@ -181,11 +181,12 @@ You need `ipympl`: every notebook starts with `%matplotlib widget`. `build/`, `i
 - **Your own laptop, with `gh`:** `gh auth login` (GitHub.com → HTTPS → Yes → browser), then `gh auth setup-git`.
 - **Pi or lab PC, no `gh` or sudo:** create a fine-grained token: GitHub → Settings → Developer settings →
   Fine-grained tokens. Owner `manojkumar-org`, only `mycobot-project`, *Contents: Read and write*.
-  Keep it in memory only:
+  Keep it in memory only, for 15 days (15 × 24 × 3600 s):
   ```bash
-  git config --global credential.helper 'cache --timeout=36000'
+  git config --global credential.helper 'cache --timeout=1296000'
   ```
   When git asks: username = your GitHub username, password = the token.
+  The cache lives in RAM: a **reboot forgets it** and git asks once more. Check it's set: `git config --global credential.helper`.
   **Never save the token in a file inside the repo.**
 
 ### Clone and set your name (once per machine)
