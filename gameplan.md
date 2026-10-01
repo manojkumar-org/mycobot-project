@@ -304,6 +304,45 @@ why real robots need more caution than simulation.
 
 ---
 
+## 7b. Lab 9 (final lab): Pick and Place with MoveIt
+
+**Step-by-step commands: [lab9_runbook.md](lab9_runbook.md)** (Part A one-time setup, B every session, C stop,
+D first pick and place with the camera). Background, safety surprises and tunable values:
+`solutions/Lab8_Lab9_run_guide.md`. PDF: `pdfs/Pick_And_Place-2.pdf` (Sep 23).
+
+**Structure (PDF):** Part 0 *Explore the existing system* is required; then **2 of 5 tasks** (A–E), the rest optional.
+Pair still to choose: low risk **B + C** (pure OpenCV, testable on saved frames), interview-strong **A + B**.
+
+**What runs where:**
+- Pi: only `mycobot_controller` (serial + pump GPIO 20).
+- Lab PC: camera, vision, MoveIt, brain, RViz.
+- Same branch `myCobot-lab` on both, `ROS_DOMAIN_ID=47`, `~/rosenv9.sh` in every terminal, ufw allows the other host.
+
+| Task | Edit (course code, git keeps the original) | New files (put them in `lab9/`) | Rebuild |
+|---|---|---|---|
+| 0 Explore | none | report + data-flow diagram | — |
+| A ArUco calibration | `mycobot_vision/vision.py` (`send_cube_coords`) | calibration script + parameters, annotated image, error table | no |
+| B Robust HSV | `vision.py` (`img_callback`) | frames under 2 lightings, before/after | no |
+| C HSV from examples | none (standalone tool, start from `solutions/hsv_calibrator.py`) | thresholds + evaluation | no |
+| D Colour + shape | `vision.py`, `mycobot_interfaces/srv/GetCubeCoords.srv` | test frames | Lab PC: interfaces, vision, brain |
+| E Object interface | `GetCubeCoords.srv`, `vision.py`, `mycobot_brain/brain.py` | — | Lab PC: as D |
+
+One commit per task. A `.srv` change is rebuilt on the Lab PC only (the Pi controller doesn't use `mycobot_interfaces`).
+
+**First pick and place with the camera (runbook Part D), summary:**
+1. No edits needed; the unchanged course code runs. The solution notebook is not used at runtime.
+2. Known risk: `vision.py` maps pixels → robot with constants for the **old** camera pose
+   (`rx = 0.08 + (cy−55)/280·0.15`, `ry = −0.075 + (cx−185)/280·0.15`, `z = 0.01`).
+3. Before `brain`: check the image is 640×480, then measure 3 cube positions with a ruler against
+   `ros2 service call /cube_coordinates …`. Error ≤ ~1 cm → run; larger → Task A (fix) or a temporary re-fit (workaround).
+4. First run: menu `2` (sort), red cube, bin A. Brain moves to home on start; "rejoice" (arm straight up) after each run.
+5. Record positions, choices, outcomes, the data flow and ≥ 2 limitations (Part 0 deliverable).
+
+**Status 2026-10-01:** setup A1–A6 done (MoveIt + build on the Lab PC, controller built on the Pi, firewall verified
+with UDP both ways, `rosenv9.sh` on both). **Next: A7** (multicast test), then Part D.
+
+---
+
 ## 8. Game plan
 
 **Phase 0 (done):** laptop setup, workspaces, repo.
@@ -386,8 +425,9 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | 2026-09-28 | Laptop: ROS 2 Jazzy + rosdep, `ros2_ws` built. Repo on GitHub (branch `myCobot-lab`). Repo audit. Lab 1 solutions worked through and verified (tasks 1–7 explained in detail; 8–33 solved). Lab 7 PDF read; robot is only reachable via the Pi over SSH (`cobot@129.217.130.85`). Pi setup started (token, clone). GAME-PLAN.md merged into this file. VS Code remote extensions on the Pi filled its RAM and hung it (SSH banner timeouts); removed them, work from the laptop (§6c). |
 | 2026-09-28 (afternoon) | Pi: venv + JupyterLab, opened in the laptop browser through an SSH tunnel. **Lab 7 Part 1 tasks 1–8 done**: port opened, six angles read (parked pose), difference from home computed. Tasks 9–15 code prepared (joint 1 +10°, `check_target`, return to `start_deg`). README cleaned (bring-up table, one-time setup, troubleshooting). |
 | 2026-09-29 | Laptop env complete: venv sees system packages, `ipympl` installed, `ros2_ws` built, smoke test and `pip check` pass. README rewritten (Pi Start / Stop steps). `solutions/` written: worked solutions with explanations for Labs 1–9 (see `solutions/README.md`; Lab 7/8 run against a simulated robot by default, Lab 9 is the algorithmic core on synthetic data). |
-
 | 2026-09-30 | Branch workflow: `myCobot-personal` (home edits) fast-forwarded into `myCobot-lab`; Pi pulled to `070cdf2`. Laptop SSH key + `cobot` alias with connection reuse. Pi checked: Ubuntu 24.04.5, ROS Jazzy, robot UART `ttyAMA0` = `serial0` alias, but no `/dev/serial0` link on Ubuntu → udev rule (README setup step 2). README: "How it runs" architecture, `ssh cobot`, `ttyAMA0`, **[Pi]** markers. **[Pi]** udev link `/dev/serial0 -> ttyAMA0` created and verified. Per-lab Pi software checked (§2); camera found on the laptop; Labs 3–5 won't run on the Pi. |
 
-**Next:** **[Pi]** udev link `/dev/serial0` → Lab 7 tasks 9–15 (first move: J1 +10° at speed 20, stop/resume, back to
-start, close) → **[Pi]** build `mycobot_control` → Part 2 (tasks 16–29) → answer the PDF short questions.
+| 2026-10-01 | Lab 7 Part 2 and **Lab 8 done** on the robot (Pi: `python3-rpi-lgpio` for `RPi.GPIO`, `ros-jazzy-control-msgs`). Branches merged: personal = lab = `79dcab8`; both lab machines on `myCobot-lab`. Lab 9 setup A1–A6 done (§7b); `lab9_runbook.md` written (Parts A–D). |
+
+**Next:** Lab 9: A7 multicast test → runbook Part D (accuracy check, then first sort run) → Part 0 report → choose
+the 2 tasks (§7b) → Lab 7/8 PDF short questions.
