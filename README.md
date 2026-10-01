@@ -32,16 +32,37 @@ Commands below assume the clone is at `~/mycobot-project`. If yours is somewhere
 
 ---
 
+## How it runs
+```
+LAPTOP (CoRobot2)                          SSH                ROBOT PI (cobot-pi1)                     ROBOT
+browser ──────── tunnel localhost:8888 ─────────────▶ JupyterLab in tmux "jup" ─ notebook kernel
+terminal ─────── ssh cobot ─────────────────────────▶ shell: tmux, ros2, git          │
+VS Code ──────── Remote-SSH (no extensions on Pi) ──▶ ~/mycobot-project               ▼
+Claude Code ──── ssh cobot '<read-only cmd>' ───────▶ checks, logs, topics       /dev/ttyAMA0 ── UART 1 Mbaud ──▶ myCobot 280
+```
+- **Everything that touches the robot runs on the Pi.** The laptop only shows it: browser, terminal, VS Code.
+- **`ssh cobot`** is an alias in the laptop's `~/.ssh/config` (key `~/.ssh/id_ed25519`, one shared connection
+  that stays open 10 min, so repeated calls are fast and light on the Pi). Setup: [One-time setup](#one-time-setup), step 6.
+- **Serial port:** the robot is on `/dev/ttyAMA0`. The course code opens `/dev/serial0`, a link that Ubuntu doesn't
+  create by itself (setup step 2).
+- **Code flow:** edit at home on `myCobot-personal` → push → update `myCobot-lab` once it works → `git pull` on the Pi
+  (the Pi tracks `myCobot-lab`).
+- **[Pi]** marks commands you type on the Pi yourself (they need sudo, a token or a password). Claude Code on the
+  laptop only runs read-only `ssh cobot` checks and never moves the robot.
+
+---
+
 ## Robot Pi (Labs 7–9)
-Pi `cobot-pi1`, login `cobot@129.217.130.85`. The robot is on the Pi's serial port `/dev/serial0`.
+Pi `cobot-pi1` (Raspberry Pi 4B, Ubuntu 24.04.5, ROS 2 Jazzy), login `ssh cobot` (= `cobot@129.217.130.85`).
+The robot is on the Pi's UART `/dev/ttyAMA0`; `/dev/serial0` is a link to it (setup step 2).
 The Pi has only 1.8 GB RAM and no swap, so keep it light.
 
 ### Start (every session)
 1. **Laptop, terminal 1:** log in to the Pi.
    ```bash
-   ssh cobot@129.217.130.85
+   ssh cobot                # without the alias (setup step 6): ssh cobot@129.217.130.85
    ```
-2. **Same terminal, now on the Pi:** start Jupyter inside tmux, so it keeps running if SSH drops.
+2. **[Pi] Same terminal, now on the Pi:** start Jupyter inside tmux, so it keeps running if SSH drops.
    ```bash
    tmux new -s jup          # "duplicate session"? then: tmux attach -t jup
    source ~/venvs/mycobot/bin/activate && cd ~/mycobot-project && git pull
@@ -50,19 +71,20 @@ The Pi has only 1.8 GB RAM and no swap, so keep it light.
    Copy the `http://127.0.0.1:8888/lab?token=…` link it prints. Then detach with **Ctrl+B, then D**.
 3. **Laptop, terminal 2 (new):** open the tunnel. It looks frozen when it works; leave it open.
    ```bash
-   ssh -N -L 8888:localhost:8888 cobot@129.217.130.85
+   ssh -N -L 8888:localhost:8888 cobot
    ```
 4. **Laptop browser:** open the link. (Lost it? Run `jupyter server list` on the Pi.)
 5. **JupyterLab:** open the notebook, choose kernel *Python 3*, and run this check first:
    ```python
    import sys, os, serial, ipympl
    print(sys.executable)                   # /home/cobot/venvs/mycobot/bin/python
-   print(os.path.exists('/dev/serial0'))   # True
+   print(os.path.exists('/dev/ttyAMA0'))   # True: the robot's port
+   print(os.path.exists('/dev/serial0'))   # True once setup step 2 is done
    ```
 
 ### Stop
 1. **Notebook:** run `ser.close()`, then save.
-2. **Terminal 1 (Pi):** `tmux attach -t jup`, press **Ctrl+C twice** to stop Jupyter.
+2. **[Pi] Terminal 1:** `tmux attach -t jup`, press **Ctrl+C twice** to stop Jupyter.
 3. **Same terminal:** commit and `git push`, then `git credential-cache exit` (forgets the token), then `exit`
    twice (closes tmux, then SSH).
 4. **Terminal 2 (laptop):** **Ctrl+C** closes the tunnel.
@@ -71,30 +93,52 @@ The Pi has only 1.8 GB RAM and no swap, so keep it light.
 Robot-safety rules and the Lab 7 steps: [gameplan.md](gameplan.md) §7, §9.
 
 ### One-time setup
-Steps 1–3 are already done on `cobot-pi1`. Redo them only on a new Pi or a fresh SD card.
-1. **Serial access:** run `ls -l /dev/serial0; groups; free -h`. If `groups` doesn't list `dialout`:
+Redo these on a new Pi or a fresh SD card. What's already done is tracked in [gameplan.md](gameplan.md) §6b.
+1. **[Pi] Serial access:** run `ls -l /dev/ttyAMA0; groups; free -h`. If `groups` doesn't list `dialout`:
    `sudo usermod -aG dialout cobot`, then log out and back in.
-2. **Clone** as in [Git](#git), signing in with a token.
-3. **Python environment for Jupyter** (Ubuntu 24.04 only allows `pip install` inside a venv; a venv costs no RAM):
+2. **[Pi] Create the `/dev/serial0` link.** The robot code for Labs 7–9 (`mycobot_control`, `motion_node.py`,
+   `controller.py`) opens `/dev/serial0`. Raspberry Pi OS creates that link; this Ubuntu image doesn't. On this Pi the
+   robot UART is `ttyAMA0` (`dtoverlay=disable-bt` in `/boot/firmware/config.txt`), so link it:
+   ```bash
+   echo 'KERNEL=="ttyAMA0", SYMLINK+="serial0", GROUP="dialout", MODE="0660"' | sudo tee /etc/udev/rules.d/99-serial0.rules
+   sudo udevadm control --reload && sudo udevadm trigger
+   ls -l /dev/serial0          # expect: /dev/serial0 -> ttyAMA0
+   ```
+   The rule survives reboots. Undo: `sudo rm /etc/udev/rules.d/99-serial0.rules`, then reboot.
+3. **Clone** as in [Git](#git), signing in with a token.
+4. **[Pi] Python environment for Jupyter** (Ubuntu 24.04 only allows `pip install` inside a venv; a venv costs no RAM):
    ```bash
    python3 -m venv --system-site-packages ~/venvs/mycobot && source ~/venvs/mycobot/bin/activate
    python -m pip install jupyterlab ipympl pyserial matplotlib "numpy<2"
    ```
    `--system-site-packages` lets the notebook use ROS's `rclpy` later (Lab 7 Part 2).
-4. **Jupyter password (optional, so you don't need a new token every start):** on the Jupyter login page, paste
+5. **Jupyter password (optional, so you don't need a new token every start):** on the Jupyter login page, paste
    the token under *Token*, type a *New Password*, click *Log in and set new password*.
    The Pi is shared, so don't reuse a personal password.
-5. **SSH key on your laptop:** no more password prompts. It also lets scripts on the laptop run commands on the Pi
-   ([gameplan.md](gameplan.md) §6c).
+6. **Laptop: SSH key and the `cobot` alias.** No password prompts, and Claude Code on the laptop can run `ssh cobot`.
    ```bash
    ssh-keygen -t ed25519 && ssh-copy-id cobot@129.217.130.85
    ```
-6. **VS Code Remote-SSH is fine, but never click "Install in SSH" on an extension.** Pylance and Copilot on
+   Then put this in the laptop's `~/.ssh/config`:
+   ```
+   Host cobot 129.217.130.85
+     HostName 129.217.130.85
+     User cobot
+     IdentityFile ~/.ssh/id_ed25519
+     ConnectTimeout 30
+     ServerAliveInterval 30
+     ServerAliveCountMax 4
+     ControlMaster auto
+     ControlPath ~/.ssh/cm-%r@%h:%p
+     ControlPersist 10m
+   ```
+   Test: `ssh -o BatchMode=yes cobot hostname` prints `cobot-pi1` without asking for a password.
+7. **VS Code Remote-SSH is fine, but never click "Install in SSH" on an extension.** Pylance and Copilot on
    the Pi filled its RAM and hung it. The "SSH: … Installed" list in Extensions must stay empty.
    Tip: in that window, *Ports* panel → *Forward a Port* → `8888` replaces the tunnel (Start, step 3).
-7. **Lab 7 Part 2 (ROS), once:** build the controller while Jupyter is **stopped**.
+8. **[Pi] Lab 7 Part 2 (ROS), once:** build the controller while Jupyter is **stopped**.
    ```bash
-   source /opt/ros/$(ls /opt/ros | head -1)/setup.bash
+   source /opt/ros/jazzy/setup.bash
    cd ~/mycobot-project/ros2_ws
    colcon build --symlink-install --parallel-workers 1 --packages-select mycobot_description mycobot_control
    ```
@@ -108,7 +152,9 @@ Steps 1–3 are already done on `cobot-pi1`. Redo them only on a new Pi or a fre
 | Login page rejects the token | Jupyter was restarted and has a new token: `jupyter server list` on the Pi |
 | Tunnel says `Address already in use` | Laptop port 8888 is busy. Use `ssh -N -L 8899:localhost:8888 …` and `8899` in the link |
 | SSH or VS Code: `timed out during banner exchange` | The Pi is out of memory: `free -h`, `pkill -f vscode-server`; `~/.vscode-server/extensions` must be empty |
-| `could not open port /dev/serial0` | No `dialout` group (setup step 1), or something else holds the port: `fuser -v /dev/serial0`, then `ser.close()` or stop `mycobot_control` |
+| `could not open port /dev/serial0` | The link is missing: setup step 2. The notebook can also use `/dev/ttyAMA0` directly |
+| `could not open port /dev/ttyAMA0` | No `dialout` group (setup step 1), or something else holds the port: `fuser -v /dev/ttyAMA0`, then `ser.close()` or stop `mycobot_control` |
+| `bash: warning: setlocale: LC_ALL: cannot change locale` on every SSH command | Harmless: the laptop sends `LC_ALL=en_US.UTF-8`, which the Pi doesn't have. To silence it: **[Pi]** `sudo locale-gen en_US.UTF-8` |
 | Motors stiff, arm not at home | Normal: powered servos hold their position. Never send all-zeros; move from the measured pose ([gameplan.md](gameplan.md) §7) |
 
 ---
