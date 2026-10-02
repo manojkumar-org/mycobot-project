@@ -2,6 +2,18 @@
 
 Compact log of what changed, newest first. Details and current state: [gameplan.md](gameplan.md), setup: [README.md](README.md).
 
+## 2026-10-02 afternoon (Lab PC, Lab 9 on real hardware)
+
+- New `solutions/lab9_simple/` (camera + YOLO on the Lab PC → `/simple_pp/target` → Lab 8 pick-and-place on the Pi; no
+  MoveIt). Committed as `9013a6c`; lab edits after it uncommitted. Status, incidents and the next fix:
+  [solutions/lab9_simple/STATUS.md](solutions/lab9_simple/STATUS.md).
+- Works: ultralytics in `~/venvs/mycobot`, markers + YOLO on the live camera, ROS link to the Pi, Pi ran the pick sequence.
+- `best.pt` (`Lab 09 PP.zip`) → `pp_yolo_ws/weights/` (gitignored); `mycobot_280_gazebo.urdf` (`Common.zip`) → repo root.
+  Other zip contents identical to the repo.
+- Wrong: the camera → robot mapping (hand-measured marker values, camera or plate moved between runs). `--jog` collided
+  the arm with itself → not to be used. Lab cubes are 35 mm, not 40.
+- Next: robot-taught calibration (STATUS §6), then the bins.
+
 ## 2026-10-02 (home laptop, all uncommitted)
 
 ### Docs

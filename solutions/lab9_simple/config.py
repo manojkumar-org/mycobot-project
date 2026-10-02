@@ -13,14 +13,14 @@ Values marked LAB8 come from the Lab 8 robot run (commit fb4d71c) and worked the
 #     WARNING: these values define the whole camera -> robot mapping. A 5 mm error here = 5 mm miss at the cube.
 #     The numbers below are a GUESS from the 10-02 photo, not measured.
 MARKERS_MM = {
-    1: (93.0, -63.0),     # marker id 1 (nearer the robot, -y side)
-    2: (205.0, 55.0),     # marker id 2 (far corner, +y side)
+    1: (140.0, -60.0),    # marker id 1 (nearer the robot, -y side); 10-02 read_tip.py (140, -60), y +20 after the first picks
+    2: (250.0, 60.0),     # marker id 2 (far corner, +y side);       10-02 read_tip.py (250, 60),  y +20 after the first picks
 }
-MARKERS_MEASURED = False  # set True only after M1 is measured; vision_pc.py refuses to send targets while False
+MARKERS_MEASURED = True   # set True only after M1 is measured; vision_pc.py refuses to send targets while False
 
 # M2  Plate surface z: jog the tip down in 1 mm steps until it just touches the plate, press p, copy z.
 #     WARNING: too low = the nozzle presses into the cube; too high = no suction. Lab 8 picked a cube with 0.
-SURFACE_Z_MM = 0.0
+SURFACE_Z_MM = 16           # 10-02: mean marker tip z (15, 24). The 5-8 mm too high on the first pick = CUBE_MM 40 vs real 35.
 
 # M3  Bin centres (x, y): jog the tip over each bin opening (start z 120), press p, copy x y.
 #     WARNING: LAB8 values. In the 10-02 camera view yellow (200, 170) is over the TABLE, not a bin -> must be re-measured.
@@ -50,9 +50,10 @@ FRAME_W, FRAME_H = 848, 480    # camera default; markers ~23 px. If markers are 
 ARUCO_DICT = "DICT_6X6_50"     # ids 1 and 2, checked on the 10-02 reference frame
 
 # Objects / YOLO
-CUBE_MM = 40.0
+CUBE_MM = 35.0                 # 10-02: lab cubes are 35 x 35 mm (course model/Lab 8 assumed 40)
 YOLO_WEIGHTS = "~/mycobot-project/pp_yolo_ws/weights/best.pt"   # from Lab 09 PP.zip (gitignored, never commit)
 YOLO_CONF = 0.5                # course used 0.75; lower (0.3) if cubes are not boxed, raise if false boxes
+BOX_MM = (30.0, 75.0)          # longer box side in mm: 35 mm cube incl. visible sides ~40-60 (58 on 10-02); plate ~150 (was boxed as "red 0.86")
 CLASS_TO_COLOR = {"RED CUBE": "red", "GREEN CUBE": "green", "YELLOW CUBE": "yellow", "CYAN CUBE": "cyan"}
 COLOR_ORDER = ["red", "yellow", "green", "cyan"]   # pick order; only these colours are sent
 # WARNING: the model knows these 4 cube classes only. The blue cylinder is not a class and is ignored.

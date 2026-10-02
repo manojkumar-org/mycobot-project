@@ -1,5 +1,7 @@
 # Lab 9 simple: camera + YOLO → pick and place (single shot, real hardware)
 
+**Status, lab results and the open mapping fix: [STATUS.md](STATUS.md) (2026-10-02 17:25). Do not use `--jog` (collision).**
+
 Written 2026-10-02. Independent of `pp_moveit_ws` / MoveIt and of the course `vision_node.py` (no course file changed, nothing to build).
 
 ```
@@ -18,7 +20,8 @@ vision_pc.py                                      robot_pi.py
 | `robot_pi.py` | Pi | pick and place; `--jog` to measure M1–M3 |
 
 Mapping: the 2 marker centres (M1, robot mm) fix scale, rotation and shift; the camera looks straight down (plate 157 × 158 px
-in the 10-02 frame). A cube top 40 mm above the plate is corrected towards the camera axis by `(H − 40) / H` (M4 = H).
+in the 10-02 frame). A cube top 35 mm (`CUBE_MM`) above the plate is corrected towards the camera axis by `(H − 35) / H` (M4 = H).
+Boxes whose longer side is outside `BOX_MM` (30–75 mm) are ignored (the white plate was once boxed as a red cube).
 
 ## ⚠ Warnings (read before step 3)
 

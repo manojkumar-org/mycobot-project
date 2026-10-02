@@ -3,7 +3,7 @@
 
 Mapping image -> robot: the 2 ArUco marker centres (measured in the robot frame) give a 2D similarity
 (scale, rotation, shift); the camera looks straight down, so that is enough for the plate plane.
-Cube tops are 40 mm above the plate, so their pixel is shifted outwards; top_to_xy() undoes that (parallax).
+Cube tops are CUBE_MM (35 mm) above the plate, so their pixel is shifted outwards; top_to_xy() undoes that (parallax).
 
 Run (README step 4): ~/venvs/mycobot/bin/python vision_pc.py   (ROS sourced, ROS_DOMAIN_ID=47)
 Keys in the window: space = ARMED/SAFE, c = re-read markers, s = save frame, q = quit.
@@ -132,6 +132,9 @@ def detect_cubes(model, frame, pm):
     conf = r.boxes.conf.cpu().numpy()
     kps = r.keypoints.xy.cpu().numpy() if r.keypoints is not None else None
     for i in range(len(boxes)):
+        side_mm = max(boxes[i][2] - boxes[i][0], boxes[i][3] - boxes[i][1]) * abs(pm.a)
+        if not C.BOX_MM[0] <= side_mm <= C.BOX_MM[1]:
+            continue                                      # not cube-sized (e.g. the white plate)
         color = C.CLASS_TO_COLOR.get(model.names[cls[i]], model.names[cls[i]])
         if kps is not None and kps[i][4].any():           # keypoint 4 = top-face centre (course model)
             u, v = kps[i][4]
