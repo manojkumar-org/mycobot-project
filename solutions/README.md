@@ -24,16 +24,16 @@ The saved outputs come from running each notebook top to bottom (plots as static
 | `Lab6_TrajectoryPlanning_solution.ipynb` | `TrajectoryPlanningTemplate.ipynb`, tasks 1–19 | laptop | executed; task 19 (robot) not executed |
 | `Lab7_SerialCommunication_solution.ipynb` | `SerialCommunicationRobotControlTemplate.ipynb`, tasks 1–29 | Pi | part 1 executed against a **simulated robot**; part 2 (ROS) not executed |
 | `Lab8_PickAndPlace_solution.ipynb` | `PickAndPlaceTemplate.ipynb`, tasks 1–28 | Pi (real) or laptop (simulation) | executed against a **simulated** `MyCobot` and GPIO (`sim_hardware.py`) |
-| `Lab9_PickAndPlace_MoveIt_solution.ipynb` | `pdfs/Pick_And_Place-2.pdf` (no template) | laptop | algorithms executed on **synthetic** images and data (`lab9_synthetic.py`); "Where this goes" notes map each task to lines of `vision.py` / `brain.py` |
+| `lab9_real_hardware/` (**use this for Lab 9**) | `pdfs/Pick_And_Place-2.pdf`: Part 0, Tasks A, B, C | Lab PC + Pi, real camera, robot and pump | step-by-step `GUIDE.md` (approaches A + B or B + C) and the scripts it uses; tested on generated images only, not yet in the lab |
+| `lab9_old_synthetic/Lab9_PickAndPlace_MoveIt_solution.ipynb` (reference) | `pdfs/Pick_And_Place-2.pdf` (no template) | laptop | algorithms executed on **synthetic** images and data (`lab9_synthetic.py`); "Where this goes" notes map each task to lines of `vision.py` / `brain.py` |
 
-**Running Labs 8 and 9 on the real system** (which machine runs which node, files needed on the Pi and on the laptop, SSH steps for the lab, start order, the values you can change and experiments): [`Lab8_Lab9_run_guide.md`](Lab8_Lab9_run_guide.md).
+**Running Labs 8 and 9 on the real system** (which machine runs which node, files needed on the Pi and on the Lab PC, SSH steps and one-time setup for the lab, start order, the values you can change and experiments): [`Lab8_Lab9_run_guide.md`](Lab8_Lab9_run_guide.md). It is the single run guide (it replaced the former `lab9_runbook.md`) and uses plain terminals, no tmux (end of section 4).
 
 Helper files in this folder:
 - `labpaths.py`: puts the repo root on `sys.path` (so `helperFunctions` and `serial_iface` import as in the templates) and finds the URDF.
 - `sim_hardware.py`: stand-ins for `pymycobot` and `RPi.GPIO` plus a simulated clock, so the Lab 8 notebook runs on a laptop (`sim_hardware.install()`; not called on the Pi).
-- `lab9_synthetic.py`: synthetic test images for the Lab 9 notebook (virtual camera with ArUco markers, coloured cubes, cylinders). Not part of the solution.
-- `publish_test_image.py`: publishes a synthetic or saved image as `camera/image` at 10 Hz, so the Lab 9 Vision node runs without a camera (needs ROS sourced; tested with `ros2 topic hz`).
-- `hsv_calibrator.py`: the Lab 9 interactive HSV calibrator (`python hsv_calibrator.py image.png`). Its window code was not run here (needs a display); the functions in it are tested in the Lab 9 notebook.
+- `lab9_real_hardware/`: the Lab 9 approach for the real system. `GUIDE.md` explains every step; scripts: `record_frames.py` (save camera frames), Task A `camera_intrinsics.py`, `markers.yaml`, `aruco_extrinsics.py`, `position_errors.py`; Task B `evaluate_detection.py`; Task C `hsv_calibrate.py`, `evaluate_thresholds.py`; reference `vision_AB.py` (A + B) and `vision_B.py` (B). None of them sends robot commands.
+- `lab9_old_synthetic/` (kept for reference, not needed in the lab): the old Lab 9 notebook and its helpers `lab9_synthetic.py` (synthetic test images), `publish_test_image.py` (publishes a synthetic or saved image as `camera/image`), `hsv_calibrator.py` (the earlier HSV calibrator, replaced by `lab9_real_hardware/hsv_calibrate.py`).
 
 ## Safety: nothing here moves the robot by itself
 - Cells that talk to the real robot default to **off** (`send_motion`, `publish_traj`, `send_velocity`, `send_ros_motion`, `send_ik`, `enable_motion`, `ALLOW_MOTION`, ...). A person sets them to `True`

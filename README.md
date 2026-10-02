@@ -35,8 +35,8 @@ Commands below assume the clone is at `~/mycobot-project`. If yours is somewhere
 ## How it runs
 ```
 LAPTOP (CoRobot2)                          SSH                ROBOT PI (cobot-pi1)                     ROBOT
-browser ──────── tunnel localhost:8888 ─────────────▶ JupyterLab in tmux "jup" ─ notebook kernel
-terminal ─────── ssh cobot ─────────────────────────▶ shell: tmux, ros2, git          │
+browser ──────── tunnel localhost:8888 ─────────────▶ JupyterLab (own terminal) ─ notebook kernel
+terminal ─────── ssh cobot ─────────────────────────▶ shell: ros2, git, jupyter      │
 VS Code ──────── Remote-SSH (no extensions on Pi) ──▶ ~/mycobot-project               ▼
 Claude Code ──── ssh cobot '<read-only cmd>' ───────▶ checks, logs, topics       /dev/ttyAMA0 ── UART 1 Mbaud ──▶ myCobot 280
 ```
@@ -62,13 +62,22 @@ The Pi has only 1.8 GB RAM and no swap, so keep it light.
    ```bash
    ssh cobot                # without the alias (setup step 6): ssh cobot@129.217.130.85
    ```
-2. **[Pi] Same terminal, now on the Pi:** start Jupyter inside tmux, so it keeps running if SSH drops.
+2. **[Pi] Same terminal, now on the Pi:** start Jupyter in the foreground. This terminal stays busy with Jupyter's
+   log; **keep the window open** while you work (closing it or losing SSH stops Jupyter).
    ```bash
-   tmux new -s jup          # "duplicate session"? then: tmux attach -t jup
    source ~/venvs/mycobot/bin/activate && cd ~/mycobot-project && git pull
    jupyter lab --no-browser --ip=127.0.0.1 --port 8888
    ```
-   Copy the `http://127.0.0.1:8888/lab?token=…` link it prints. Then detach with **Ctrl+B, then D**.
+   Copy the `http://127.0.0.1:8888/lab?token=…` link it prints. Need another shell on the Pi? Open a new laptop
+   terminal and run `ssh cobot` again.
+
+   *Variant: Jupyter keeps running after you close the window (no tmux).* Run it in the background with a log file:
+   ```bash
+   nohup jupyter lab --no-browser --ip=127.0.0.1 --port 8888 > ~/jup.log 2>&1 &
+   echo $! > ~/jup.pid      # remember the process id
+   jupyter server list      # shows the token link (or: grep token ~/jup.log)
+   ```
+   Stop it later with `kill $(cat ~/jup.pid)`. (Optional: `tmux new -s jup` does the same; detach Ctrl+B then D, `tmux attach -t jup`.)
 3. **Laptop, terminal 2 (new):** open the tunnel. It looks frozen when it works; leave it open.
    ```bash
    ssh -N -L 8888:localhost:8888 cobot
@@ -84,9 +93,9 @@ The Pi has only 1.8 GB RAM and no swap, so keep it light.
 
 ### Stop
 1. **Notebook:** run `ser.close()`, then save.
-2. **[Pi] Terminal 1:** `tmux attach -t jup`, press **Ctrl+C twice** to stop Jupyter.
+2. **[Pi] Terminal 1:** press **Ctrl+C twice** to stop Jupyter. (Started with `nohup`? Run `kill $(cat ~/jup.pid)`.)
 3. **Same terminal:** commit and `git push`, then `git credential-cache exit` (forgets the token), then `exit`
-   twice (closes tmux, then SSH).
+   (closes SSH).
 4. **Terminal 2 (laptop):** **Ctrl+C** closes the tunnel.
 
 **Rules:** the serial notebook and `mycobot_control` can't use the port at the same time.

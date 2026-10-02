@@ -2,6 +2,66 @@
 
 Compact log of what changed, newest first. Details and current state: [gameplan.md](gameplan.md), setup: [README.md](README.md).
 
+## 2026-10-02 (home laptop, all uncommitted)
+
+### Docs
+- tmux replaced by plain terminals in `README.md`, `gameplan.md`, the run guide ("Terminals without tmux", end of §4):
+  one terminal per process; `nohup … &` + `kill` only for Jupyter, never for the controller. `nohup` lines untested on the Pi.
+- `lab9_runbook.md` merged into `solutions/Lab8_Lab9_run_guide.md` (lab values kept as written: IPs, domain 47, UFW,
+  camera `/dev/video0` C930e, A1–A6 done, A7 TODO) and deleted. Status values copied from the lab notes, not re-verified.
+- Two editing sessions worked in the same working tree in the morning; the second one was closed. All edits are in the tree.
+
+### Lab 9 approach for the real system
+- Decision: no simulated or synthetic test bench for the final lab. Two approaches, **A + B** or **B + C**, both implemented
+  in `solutions/lab9_real_hardware/`: `GUIDE.md` (Part 0, Tasks A, B, C step by step, code explained) + `record_frames.py`,
+  `camera_intrinsics.py`, `markers.yaml` (placeholders), `aruco_extrinsics.py`, `position_errors.py`, `evaluate_detection.py`,
+  `hsv_calibrate.py`, `evaluate_thresholds.py`, reference `vision_AB.py` / `vision_B.py`. Results go to `lab9/`.
+- Tested on the laptop with generated images only: camera pose from 2 markers within 2.3 mm / 0.3°, cube positions within
+  0.4 mm, yaw within 0.6°, checkerboard K within 0.3 %, B evaluation and stale test, C hue split at 0/179.
+  Not tested: `record_frames.py`, the service call of `position_errors.py`, the click windows; nothing tested in the lab yet.
+- Old Lab 9 notebook and its helpers (`lab9_synthetic.py`, `publish_test_image.py`, `hsv_calibrator.py`) moved unchanged to
+  `solutions/lab9_old_synthetic/`. Pointers updated in `solutions/README.md`, the run guide and gameplan §7b.
+- Code findings (for the Part 0 report): `cv2.contourArea` counts holes (solidity check added in Task B); sort-mode
+  rejoice (`brain.py:526`) is never reached because the menus call themselves (check in the lab; the run guide says
+  rejoice after every run); stacking with red missing keeps green on the pump; `opencv_camera.py` reopens the camera for
+  every frame (check the real rate); `mycobot_vision/setup.py` lists a `vision2` entry point without a file.
+
+### Open, in priority order
+1. Lab session 1: A7 network test → Part 0 (GUIDE §4, incl. `position_errors.py baseline`) → record frames (GUIDE §5);
+   measure marker poses and camera height; checkerboard available?
+2. Send the test-setup details (ArUco dictionary, ids, size, poses) → fill `markers.yaml`, adapt the marker step if needed.
+3. Choose the approach after session 1 (markers + checkerboard → A + B, else B + C).
+4. Commit and push today's changes (moves, deletion of `lab9_runbook.md`, edited docs, new folder).
+5. Part 0 report; Lab 7/8 PDF short questions.
+
+## 2026-10-01 (written 2026-10-02, from `git log` and `gameplan.md` §12; robot-side facts are as logged in the lab)
+
+### Git
+- Merge `92778ab` (15:01) joined the home commit `55eb47c` with `8a93ca3`; no conflicts, `solutions/` untouched by the merge.
+- `a6098b7` (15:24) merged `myCobot-personal` into `myCobot-lab`. Lab commits after it: `245fc7c` Lab 7 robot run,
+  `fb4d71c` Lab 8 robot run + Lab 8/9 solution notebooks, `79dcab8` README credential cache, `c472ce3` Lab 9 setup + game plan.
+- State on 2026-10-02: laptop is on `myCobot-lab` = `origin/myCobot-lab` (`c472ce3`); local `myCobot-personal` (`92778ab`) is
+  4 commits behind its origin. **Uncommitted:** `README.md`, `gameplan.md`, `history.md`, `solutions/README.md`,
+  `solutions/Lab8_Lab9_run_guide.md`; `lab9_runbook.md` deleted (its content now lives in the run guide).
+
+### Solutions (home work, commit `55eb47c`)
+- Labs 1, 2, 8, 9 reworked so the code cells follow the template (blanks filled); the explanations, "How it works" and
+  syntax examples were kept.
+- Lab 8 ran against a simulated `MyCobot` / GPIO (`sim_hardware.py`); Lab 9 algorithms ran on synthetic data
+  (`lab9_synthetic.py`); `publish_test_image.py` feeds a test image to `camera/image`.
+- `solutions/Lab8_Lab9_run_guide.md`: machine split, files per machine, SSH steps, start order, values and experiments.
+
+### Lab (robot)
+- Lab 7 Part 1 + Part 2 and **Lab 8 done on the robot** (Pi: `python3-rpi-lgpio` for `RPi.GPIO`, `ros-jazzy-control-msgs`).
+- Lab 9 setup A1–A6 done on the Lab PC `CoRobot2`; ROS domain 47 on both machines. A7 (network test) not yet run.
+- Decision: no simulated or synthetic test bench for the final lab; use the real camera, robot and pump.
+
+### Open, in priority order
+1. Lab 9: A7 multicast test → accuracy check with a ruler → first sort run (guide §6).
+2. Step-by-step real-hardware approach for the Lab 9 task (new file, the old solution stays as reference).
+3. Part 0 report; choose the 2 tasks (gameplan §7b); Lab 7/8 PDF short questions.
+4. Test-setup details (ArUco marker layout) still to be added by Mano; then adapt the marker pipeline.
+
 ## 2026-09-30 (written 12:30)
 
 ### Git
@@ -41,7 +101,8 @@ Compact log of what changed, newest first. Details and current state: [gameplan.
 
 ### Open, in priority order
 1. Lab 7 tasks 28–29 and the PDF short questions; save the notebook.
-2. Run the controller and Jupyter **inside tmux** (`ctl`, `jup`), so a closed terminal doesn't stop them.
+2. Run the controller and Jupyter each in its **own SSH terminal, kept open** (no tmux needed). If they must survive a closed
+   window: `nohup … > log 2>&1 &` and `kill` by pid.
 3. Matplotlib mix in the venv (3.11.2 pip vs system `mpl_toolkits` 3.6.3 → "Unable to import Axes3D"). Proposed fix,
    **not applied:** `~/venvs/mycobot/bin/pip uninstall -y matplotlib types-seaborn`.
 4. Commit and push today's changes (see Git).

@@ -225,7 +225,7 @@ print(s.read(64).hex(' ')); s.close()     # expect: fe fe 0e 20 ... fa
 | Run a command on the Pi | `ssh cobot '<command>'`; with ROS: `ssh cobot 'source ~/rosenv.sh && ros2 topic list'` |
 | Claude Code (on the laptop) | read-only `ssh cobot '…'` checks; **[Pi]** steps (sudo, tokens, motion) are prompted and run by you |
 | Read/edit Pi files with normal tools | sshfs mount: Pi `~/mycobot-project` appears at laptop `~/pi-mycobot` |
-| Long-running things (controller, Jupyter) | `tmux` **on the Pi**, so they survive SSH drops |
+| Long-running things (controller, Jupyter) | one SSH terminal per process, kept open (Ctrl+C stops it); for "survives closing the window" use `nohup … &` + a log file. `tmux` is optional |
 | Notebooks | JupyterLab runs on the Pi (kernel there sees `/dev/ttyAMA0`); laptop connects through an SSH port forward |
 | Git for the Pi clone | run git on the Pi: `ssh cobot 'cd ~/mycobot-project && git status'` (git over sshfs is slow) |
 
@@ -255,7 +255,7 @@ source ~/venvs/mycobot/bin/activate
 Mount / unmount (laptop): `sshfs cobot:/home/cobot/mycobot-project ~/pi-mycobot -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3`
 → `fusermount -u ~/pi-mycobot`. Avoid broad searches over the mount (the 277 MB `mycobot_description` is slow over the network).
 
-Jupyter: see the bring-up table in README.md (Pi `tmux` + `jupyter lab --no-browser --ip=127.0.0.1 --port 8888`,
+Jupyter: see the bring-up table in README.md (Pi, own terminal: `jupyter lab --no-browser --ip=127.0.0.1 --port 8888`,
 laptop `ssh -N -L 8888:localhost:8888 cobot`, browser with the token link).
 
 ---
@@ -295,7 +295,7 @@ def check_target(target_deg, max_step=15):
     return tgt.tolist()
 ```
 
-Part 2 (tasks 16–29): launch the controller in tmux, then publish on `/mycobot/joint_command` (rad) and
+Part 2 (tasks 16–29): launch the controller in its own SSH terminal (leave it open), then publish on `/mycobot/joint_command` (rad) and
 `/mycobot/joint_velocity` (rad/s: small, short, then zeros). Start with 0.1 rad/s on one joint for 1–2 s.
 
 PDF short questions (interview prep): purpose of serial comms; why frames; commanded vs measured; position vs
@@ -306,12 +306,14 @@ why real robots need more caution than simulation.
 
 ## 7b. Lab 9 (final lab): Pick and Place with MoveIt
 
-**Step-by-step commands: [lab9_runbook.md](lab9_runbook.md)** (Part A one-time setup, B every session, C stop,
-D first pick and place with the camera). Background, safety surprises and tunable values:
-`solutions/Lab8_Lab9_run_guide.md`. PDF: `pdfs/Pick_And_Place-2.pdf` (Sep 23).
+**Step-by-step commands and background: [solutions/Lab8_Lab9_run_guide.md](solutions/Lab8_Lab9_run_guide.md)** (§4 one-time
+setup A0–A7, §6 simulation / real robot B1–B6 / stop / first pick and place with the camera D1–D5; also safety
+surprises, why, tunable values, experiments, troubleshooting). PDF: `pdfs/Pick_And_Place-2.pdf` (Sep 23).
 
 **Structure (PDF):** Part 0 *Explore the existing system* is required; then **2 of 5 tasks** (A–E), the rest optional.
-Pair still to choose: low risk **B + C** (pure OpenCV, testable on saved frames), interview-strong **A + B**.
+**Approaches (decided 2026-10-02): A + B or B + C**, both implemented for the real system (no simulation):
+**[solutions/lab9_real_hardware/GUIDE.md](solutions/lab9_real_hardware/GUIDE.md)** (Part 0, Tasks A, B, C step by step, code explained;
+results go to `lab9/`). Old synthetic-data solution kept in `solutions/lab9_old_synthetic/` for reference.
 
 **What runs where:**
 - Pi: only `mycobot_controller` (serial + pump GPIO 20).
@@ -323,13 +325,13 @@ Pair still to choose: low risk **B + C** (pure OpenCV, testable on saved frames)
 | 0 Explore | none | report + data-flow diagram | — |
 | A ArUco calibration | `mycobot_vision/vision.py` (`send_cube_coords`) | calibration script + parameters, annotated image, error table | no |
 | B Robust HSV | `vision.py` (`img_callback`) | frames under 2 lightings, before/after | no |
-| C HSV from examples | none (standalone tool, start from `solutions/hsv_calibrator.py`) | thresholds + evaluation | no |
+| C HSV from examples | none (standalone tool `solutions/lab9_real_hardware/hsv_calibrate.py`) | thresholds + evaluation | no |
 | D Colour + shape | `vision.py`, `mycobot_interfaces/srv/GetCubeCoords.srv` | test frames | Lab PC: interfaces, vision, brain |
 | E Object interface | `GetCubeCoords.srv`, `vision.py`, `mycobot_brain/brain.py` | — | Lab PC: as D |
 
 One commit per task. A `.srv` change is rebuilt on the Lab PC only (the Pi controller doesn't use `mycobot_interfaces`).
 
-**First pick and place with the camera (runbook Part D), summary:**
+**First pick and place with the camera (run guide §6d), summary:**
 1. No edits needed; the unchanged course code runs. The solution notebook is not used at runtime.
 2. Known risk: `vision.py` maps pixels → robot with constants for the **old** camera pose
    (`rx = 0.08 + (cy−55)/280·0.15`, `ry = −0.075 + (cx−185)/280·0.15`, `z = 0.01`).
@@ -376,8 +378,8 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 4. Don't commit `pdfs/`, tokens, `build/ install/ log/`, or weights. Never store the GitHub token in a file inside the
    repo (`.git/info/exclude` covers `pdfs/` and `*token*` on the laptop; add the same on the Pi).
 5. Hardcoded paths (§4, §5) are known and left as-is. Change only when a lab needs it.
-6. Shared Pi, end of session: push your work from the Pi, `ssh cobot 'git credential-cache exit'`, stop Jupyter/tmux
-   sessions you started, `fusermount -u ~/pi-mycobot` on the laptop.
+6. Shared Pi, end of session: push your work from the Pi, `ssh cobot 'git credential-cache exit'`, stop Jupyter/controller
+   processes you started (Ctrl+C, or `kill $(cat ~/jup.pid)`), `fusermount -u ~/pi-mycobot` on the laptop.
 7. Keep the Pi light. VS Code Remote-SSH is allowed, but never click "Install in SSH" for
    extensions (Pylance and Copilot filled the Pi's RAM). Notebooks: JupyterLab on the Pi + port forward.
    Pi-side VS Code settings: `~/.vscode-server/data/Machine/settings.json` (watcher excludes for build/, install/,
@@ -427,7 +429,7 @@ report, pick the 2 extensions on day 1 of this phase and split them in the group
 | 2026-09-29 | Laptop env complete: venv sees system packages, `ipympl` installed, `ros2_ws` built, smoke test and `pip check` pass. README rewritten (Pi Start / Stop steps). `solutions/` written: worked solutions with explanations for Labs 1–9 (see `solutions/README.md`; Lab 7/8 run against a simulated robot by default, Lab 9 is the algorithmic core on synthetic data). |
 | 2026-09-30 | Branch workflow: `myCobot-personal` (home edits) fast-forwarded into `myCobot-lab`; Pi pulled to `070cdf2`. Laptop SSH key + `cobot` alias with connection reuse. Pi checked: Ubuntu 24.04.5, ROS Jazzy, robot UART `ttyAMA0` = `serial0` alias, but no `/dev/serial0` link on Ubuntu → udev rule (README setup step 2). README: "How it runs" architecture, `ssh cobot`, `ttyAMA0`, **[Pi]** markers. **[Pi]** udev link `/dev/serial0 -> ttyAMA0` created and verified. Per-lab Pi software checked (§2); camera found on the laptop; Labs 3–5 won't run on the Pi. |
 
-| 2026-10-01 | Lab 7 Part 2 and **Lab 8 done** on the robot (Pi: `python3-rpi-lgpio` for `RPi.GPIO`, `ros-jazzy-control-msgs`). Branches merged: personal = lab = `79dcab8`; both lab machines on `myCobot-lab`. Lab 9 setup A1–A6 done (§7b); `lab9_runbook.md` written (Parts A–D). |
+| 2026-10-01 | Lab 7 Part 2 and **Lab 8 done** on the robot (Pi: `python3-rpi-lgpio` for `RPi.GPIO`, `ros-jazzy-control-msgs`). Branches merged: personal = lab = `79dcab8`; both lab machines on `myCobot-lab`. Lab 9 setup A1–A6 done (§7b); `lab9_runbook.md` written (Parts A–D; since merged into `solutions/Lab8_Lab9_run_guide.md`). |
 
-**Next:** Lab 9: A7 multicast test → runbook Part D (accuracy check, then first sort run) → Part 0 report → choose
+**Next:** Lab 9: A7 multicast test → guide §6d (accuracy check, then first sort run) → Part 0 report → choose
 the 2 tasks (§7b) → Lab 7/8 PDF short questions.
