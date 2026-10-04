@@ -2,6 +2,21 @@
 
 Compact log of what changed, newest first. Details and current state: [gameplan.md](gameplan.md), setup: [README.md](README.md).
 
+## 2026-10-04 (home laptop, uncommitted)
+
+- Labs 3–7 solutions rewritten from the original templates: code cells = template cells with the blanks filled (Lab 3:
+  +24/−8 changed lines of 346, Lab 7: +43/−25 of 220); per task **Concept**, **How it works** (syntax), **Example** blocks.
+  **Real robot by default** in the robot tasks (Lab 3 task 18, Lab 4 tasks 19–20, Lab 6 task 19, Lab 7 Parts 1–2), each
+  with a short guard; optional 🧪 simulation blocks after the real solution.
+- New `solutions/sim_robot.py`: simulated arm behind a virtual serial port, so the real `serial_iface.py` and the real
+  `mycobot_control` run unchanged (isolated with `ROS_DOMAIN_ID=99`, localhost only). All robot cells of Labs 3, 4, 6, 7
+  were run end to end against it.
+- Found in that test (code reading + simulation, not yet on the robot): `/mycobot/joint_states` is an estimate that lags
+  one position command; after a velocity stop the controller has sent STOP and ignores-until-resume applies to later
+  position commands; the parked pose (joint 5 ≈ 90°) is wrist-singular. The notebooks explain and work around all three.
+- `solutions/labpaths.py`: registers `ros2_ws/src` so the course URDF's `package://mycobot_description` meshes resolve
+  without a sourced workspace (the solutions failed at the URDF cell before). `solutions/README.md` updated.
+
 ## 2026-10-02 afternoon (Lab PC, Lab 9 on real hardware)
 
 - New `solutions/lab9_simple/` (camera + YOLO on the Lab PC → `/simple_pp/target` → Lab 8 pick-and-place on the Pi; no

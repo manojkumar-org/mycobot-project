@@ -26,8 +26,20 @@ FALLBACK_URDF = os.path.join(
 )
 
 
+def _register_ros_packages():
+    """The course URDF names its meshes package://mycobot_description/...; the toolbox's URDF loader (xacrodoc) can
+    only resolve that if it knows where the package is. Without a sourced ROS workspace in the kernel it does not, so
+    point it at ros2_ws/src, which contains mycobot_description (its package.xml)."""
+    try:
+        import xacrodoc.packages
+        xacrodoc.packages.look_in([os.path.join(REPO_ROOT, 'ros2_ws', 'src')])
+    except ImportError:
+        pass
+
+
 def urdf_path(verbose=True):
     """Absolute path of the course URDF, or of the fallback URDF if the course file is missing."""
+    _register_ros_packages()
     if os.path.isfile(COURSE_URDF):
         if verbose:
             print('Using course URDF:', COURSE_URDF)
