@@ -11,7 +11,7 @@ Written 2026-10-05 15:45. **The provided course packages in `pp_moveit_ws/src/my
 | `2218733`, `3a77aab` | 09-28 | imported as delivered (`3a77aab` only added the full `mycobot_description`) |
 | `04c715b` | 10-05 11:14 | **as delivered** (reference) |
 | `2b1f0bf`, `c456522` | 10-05 13:40, 15:13 | temporarily modified (2 files) and extended (4 files, 5 small config edits) |
-| (this change) | 10-05 15:45 | **restored to `04c715b`**; everything moved into `lab9_interfaces` / `lab9_pick_place` |
+| `48c54ce` | 10-05 15:37 | **restored to `04c715b`**; everything moved into `lab9_interfaces` / `lab9_pick_place` |
 
 ## What replaces what
 

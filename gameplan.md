@@ -313,11 +313,14 @@ surprises, why, tunable values, experiments, troubleshooting). PDF: `pdfs/Pick_A
 **Structure (PDF):** Part 0 *Explore the existing system* is required; then **2 of 5 tasks** (A–E), the rest optional.
 **Approach (decided 2026-10-05): object shape detection + extension of the object interface**, in the course ROS
 pipeline with the values that worked in `solutions/lab9_simple/`: **[solutions/lab9_real_hardware/README.md](solutions/lab9_real_hardware/README.md)**
-(run order, Part 0, evaluation). **Own packages, course packages unchanged (since 10-05 15:45):**
+(run order, Part 0, evaluation). **Final implementation (decided 10-05 17:45): the package version below.**
+PDF-based plan and open steps: [solutions/lab9_real_hardware/LAB9_PLAN.md](solutions/lab9_real_hardware/LAB9_PLAN.md).
+**Own packages, course packages unchanged (since `48c54ce`, 10-05 15:37):**
 `pp_moveit_ws/src/lab9_interfaces` (`GetObject.srv`) and `pp_moveit_ws/src/lab9_pick_place` (`vision_lab9`, `brain_lab9`,
 `controller_lab9` for the Pi, `lab9_moveit.launch.py`, `lab9_real.launch.py`, `config/lab9.yaml`); what replaces what:
 [solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md](solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md).
-Status 10-05: runs on the robot (moves + home OK), full pick not yet verified; package split tested in simulation. Earlier plan
+Status 10-05 17:45: controller, MoveIt, camera, vision ran on the robot (cube detection OK, yellow → `unknown`), full pick
+not yet verified; marker centres to re-measure. Earlier plan
 (2026-10-02, A + B or B + C): `solutions/lab9_real_hardware/old_tasks_ABC/GUIDE.md`. Single-shot fallback without
 MoveIt: `solutions/lab9_simple/`. Old synthetic-data solution kept in `solutions/lab9_old_synthetic/` for reference.
 

@@ -4,35 +4,50 @@ Compact log of what changed, newest first. Details and current state: [gameplan.
 
 ## 2026-10-05 (Lab PC, Lab 9 on the robot)
 
-- `lab9_simple` on the robot: markers re-measured from the robot centre (plate = Lab 8 workspace), then the plate moved
-  +45 mm in x after a collision + Pi crash near the base (x 120 mm); HSV outlines, cube/cylinder, blue by colour (not a
-  YOLO class), `[target]` print; Pi GPIO busy = a Jupyter kernel held the pins and the serial port.
-- **Lab 9 tasks chosen: object shape detection + extension of the object interface**, in the course ROS pipeline:
-  `solutions/lab9_real_hardware/README.md` + `lab9.yaml`; new `vision_lab9`, `brain_lab9`, `GetObject.srv`,
-  `lab9_real.launch.py`; `controller.py` pump off now opens valve 21 (Lab 8 fix). Old A/B/C guide → `old_tasks_ABC/`.
-- Tested: build (Lab PC); detection on the 10-02 frame; MoveIt plan-only grid (plate reachable x 0.135–0.250 m with
-  yaw retries; random IK failures otherwise); end-to-end in simulation (domain 93): cylinder + cube picked and binned.
-  Not yet on the robot; Pi needs `git pull` + controller rebuild.
-- First robot runs of `brain_lab9`, fixes:
-  - MoveIt −10 (start state in collision): the old `lab9_simple` home (flange 410 mm) lies in the scene's `env_camera`
-    box → both versions now share the home `[0, 180, 200, -180, 0, 0]` (old line kept as a comment).
-  - MoveIt −6 (TIMED_OUT) on every execution: the real controller is slower than plan × 1.2 + 0.5 s and ignores cancel;
-    the brain retried −6 and stacked 5 home trajectories → −6 no longer retried; `move_group.launch.py` execution
-    limits × 4 + 5 s.
-  - Slow, stop-and-go motion: the controller sent every waypoint at 100 × velocity (5–20) and the brain used velocity
-    scaling 0.3 → controller sends one waypoint per ≥ 0.25 s at speed 40–90 and waits for arrival; scaling 1.0.
-  - Home as a joint posture (`home_joints_deg` [109.86, 1.58, −93.51, 1.14, 0.08, 20.03]); the pose goal had J6 −158°.
-  - Open: MoveIt FK puts the flange 7.8 mm lower than pymycobot for the same joints → picks may stop ~8 mm high
-    (`tip_below_pump_head_m` 0.028 → 0.020 if so).
-- Committed `2b1f0bf` (13:40) + `c456522` (15:13), pushed; Pi pulled `c456522`. Changes inside the provided course packages
-  listed in `solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md` (2 course files modified: `controller.py`,
-  `move_group.launch.py`; 4 small config edits; 4 added files); how to restore the originals for the Part 0 baseline.
-- **Package split (15:45):** course packages restored to `04c715b` (as delivered); all Lab 9 code moved (git mv) into
-  `pp_moveit_ws/src/lab9_interfaces` + `lab9_pick_place` (`controller_lab9` = course controller + fixes, run on the Pi
-  instead of `mycobot_controller`; `lab9_moveit.launch.py` = course move_group + execution limits; `config/lab9.yaml`).
-  Lab PC rebuilt (old build/install of the 3 course packages deleted first); same simulation test passed. README rewritten
-  (run order with the new commands); `COURSE_PACKAGE_CHANGES.md` = what replaces what. Pi: `git pull` + build `lab9_pick_place`.
-- Next: first full pick on the robot (check suction contact / 8 mm), then auto sort; Part 0 baseline; evaluation of both tasks.
+Times from git commits, ROS logs, file times and the session; `~` = approximate.
+
+**Morning: `lab9_simple` on the robot**
+- 11:14 `04c715b` (STATUS update, home commit `44701f0` pulled); ~11:20 Pi pulled; ~11:35 Jupyter tunnel only on IPv6
+  `[::1]` → use `localhost` or `-L 127.0.0.1:8888:…`.
+- ~11:55 markers re-measured with a ruler from the robot centre: plate = Lab 8 workspace (old hand-guided x was ~50 mm off).
+- 12:05 HSV outlines, cube/cylinder by fill, blue by colour (not a YOLO class); frames `lab9/frames/simple_*_1205*`.
+- ~12:20 Pi GPIO busy: a Jupyter kernel held the pins + serial port → kernel stopped.
+- ~12:26 collision + Pi crash/reboot at pick (120, 26) mm (near-base IK) → ~12:50 plate moved +45 mm in x, markers
+  (135, −60)/(255, 60), drop height 100 mm; `[target]` print instead of a window tag.
+
+**Afternoon: course ROS pipeline**
+- ~13:00 tasks chosen: **object shape detection + extension of the object interface** in the course pipeline.
+- ~13:20–13:40 MoveIt simulation (domain 93): plan-only grid → reachable x 0.135–0.250 m with yaw retries; end-to-end
+  pick of a cylinder + cube passed. 13:40 `2b1f0bf` (vision_lab9, brain_lab9, GetObject.srv, launch, controller valve fix;
+  old A/B/C guide → `old_tasks_ABC/`).
+- ~14:35 first robot run of `brain_lab9`: MoveIt −10 (arm in the old 410 mm home = inside the scene's `env_camera` box)
+  → parked at the Lab 8 intermediate pose; ~14:40 common home `[0, 180, 200, -180, 0, 0]` for both versions.
+- 14:44–14:46 MoveIt −6 (TIMED_OUT) on every execution (MoveIt log: 8 started, 0 succeeded); the real controller is
+  slower than plan × 1.2 + 0.5 s and ignores cancel; the brain retried −6 → 5 stacked home trajectories → ~14:55 −6 not
+  retried, execution limits × 4 + 5 s.
+- ~15:00 slow stop-and-go (every waypoint at 100 × velocity, scaling 0.3) → one waypoint per ≥ 0.25 s at speed 40–90,
+  arrival wait, scaling 1.0; ~15:10 home as joint posture `home_joints_deg` [109.86, 1.58, −93.51, 1.14, 0.08, 20.03].
+  Open since then: MoveIt FK puts the flange 7.8 mm lower than pymycobot → picks may stop ~8 mm high.
+- 15:13 `c456522` (robot-run fixes, committed by Mano); ~15:30 `COURSE_PACKAGE_CHANGES.md` listed the edits inside course packages.
+- 15:37 `48c54ce` **package split:** course packages restored to `04c715b`; all Lab 9 code in `pp_moveit_ws/src/lab9_interfaces`
+  + `lab9_pick_place` (`controller_lab9`, `lab9_moveit.launch.py`, `config/lab9.yaml`); Lab PC rebuilt; same simulation test passed.
+
+**Evening**
+- ~16:10 `LAB9_PLAN.md`: plan along PDF pages 14–26 (Part 0 + 2 tasks, deliverables, notes), comparison with what we did,
+  how the course controller could run as is.
+- 16:20 `5cda33d`: `lab9_pick_place` cannot be colcon-built on the Pi (depends on course packages not built there) →
+  `controller_lab9.py` started with `python3`. Pi pulled `48c54ce`/`5cda33d`; its course controller is the original again.
+- 16:25 `lab9_pick_place` rebuilt inside the `(mycobot)` venv → node scripts with the venv Python (numpy 2) → `cv_bridge`
+  segfault, no vision window. 16:48 rebuilt without the venv (`#!/usr/bin/python3`); README §3 build block has `deactivate`.
+- ~16:30 option B (standalone scripts + course controller) noted in `LAB9_PLAN.md` §2.
+- 17:14–17:16 vision on the robot (`lab9/frames/lab9_*_20261005_1714*/1716*`): `blue_cube_1`, `red_cube_1` correct, yellow
+  cube → `yellow_unknown_1` (uncertain case); workspace box ≠ plate edges → re-measure markers.
+- 17:31 `controller_lab9` crashed at start (`get_radians()` → `-1`, no serial answer yet); restarted 10 s later → 20 Hz
+  joint states. Same weakness in the course controller; guard not applied.
+- **17:45 final decision: the `lab9_pick_place` package version is the final Lab 9 implementation**; option B dropped.
+
+**Open, in order:** re-measure marker centres; first full pick + drop (8 mm check); Part 0 baseline with the course
+system; bins A–D + `exit` (PDF); evaluations (shape, interface) + report; TA questions (`LAB9_PLAN.md` §7).
 
 ## 2026-10-04 (home laptop, uncommitted)
 

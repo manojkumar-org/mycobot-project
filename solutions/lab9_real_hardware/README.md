@@ -1,14 +1,19 @@
-# Lab 9 on the real robot: course ROS pipeline + our own packages (2026-10-05)
+# Lab 9 on the real robot: course ROS pipeline + our own packages (2026-10-05) — **final implementation**
 
 The course system (camera → vision → brain → MoveIt → controller) on the real robot, with the values that worked in
 [`solutions/lab9_simple/`](../lab9_simple/). **All our code is in two own packages; the provided course packages are
 unchanged** (`git diff 04c715b -- pp_moveit_ws/src/mycobot_*` is empty). Details of what replaces what:
 [COURSE_PACKAGE_CHANGES.md](COURSE_PACKAGE_CHANGES.md). Old guide for Tasks A–C: [`old_tasks_ABC/`](old_tasks_ABC/).
 
-**Status (2026-10-05 15:45):** both packages built on the Lab PC and tested end to end in MoveIt simulation (joint home →
-blue cylinder → blue bin → yellow cube → yellow bin). On the robot (before the package split, same code): controller,
-MoveIt, camera, vision and brain ran together, home and moves executed. **Not yet verified on the robot:** a complete pick
-and drop (suction contact, see §7, 8 mm), and the Pi build of `lab9_pick_place`.
+**Decision (2026-10-05 17:45): this package version (`lab9_interfaces` + `lab9_pick_place`) is our final Lab 9
+implementation.** The alternative of new standalone scripts with the course controller (`LAB9_PLAN.md` §2, option B) is
+not pursued; the PDF plan there still applies for Part 0 and the evaluations.
+
+**Status (2026-10-05 17:45):** built on the Lab PC (rebuilt 16:48 without the venv); end-to-end simulation test passed.
+On the robot: controller (`controller_lab9`, 20 Hz joint states), MoveIt, camera and `vision_lab9` ran; at 17:16 vision
+labelled `blue_cube_1`, `red_cube_1` and a yellow cube as `yellow_unknown_1` (`lab9/frames/lab9_annotated_20261005_171624.png`);
+the workspace box no longer matches the plate edges → re-measure the marker centres. **Not yet verified on the robot:** a
+complete pick and drop (suction contact, §7, 8 mm).
 
 ```
 Lab PC (ROS_DOMAIN_ID 47)                                                    Pi cobot-pi1
@@ -65,9 +70,11 @@ while `lab9_simple` is used).
 ## 3. One-time setup (after `git pull`)
 
 ```bash
-# Lab PC
+# Lab PC — NOT inside the (mycobot) venv: it would put the venv Python (numpy 2) into the node scripts
+deactivate 2>/dev/null
 cd ~/mycobot-project/pp_moveit_ws && source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install --packages-select lab9_interfaces lab9_pick_place
+head -1 install/lab9_pick_place/lib/lab9_pick_place/vision_lab9     # must print #!/usr/bin/python3
 ```
 ```bash
 # [Pi]  (GitHub token for the pull after a reboot); nothing to build
@@ -146,6 +153,8 @@ Then menu `1` with two objects of the same colour (selection list) and menu `2`.
 | Symptom | Cause → fix |
 |---|---|
 | `Package 'lab9_pick_place' not found` | Lab PC terminal not sourced: `deactivate; source ~/rosenv9.sh` (on the Pi the package is not built: start the controller with `python3`, §4 step 1) |
+| no vision window; `ros2 run lab9_pick_place vision_lab9` → `Segmentation fault` (numpy 1.x / 2 message) | package built inside the `(mycobot)` venv: node scripts start with the venv Python (numpy 2) and `cv_bridge` crashes → `deactivate`, rebuild (§3), check `head -1` (10-05) |
+| controller exits with `TypeError: 'int' object is not iterable` (`Current coordinates: -1`) | the robot did not answer the first serial reads after start; restart the controller (worked the second time, 10-05). The course controller has the same weakness |
 | brain waits for `follow_joint_trajectory` | `controller_lab9` not running on the Pi, or domain / firewall: step 2 |
 | controller: GPIO busy / serial errors | another program holds the robot (Jupyter kernel, `robot_pi.py`, the course controller): stop it |
 | vision: `marker(s) [..] not visible` | uncover the markers, press `c` |
