@@ -3,16 +3,24 @@
 Read with [README.md](README.md) (run order) and [config.py](config.py) (all values). This file = what happened in the lab,
 what is still wrong, and the planned fix (robot-taught calibration) to implement at home.
 
-## 1. State of the files
+## 1. State of the files (checked 2026-10-05 11:15)
 
 | Where | State |
 |---|---|
-| `origin/myCobot-lab` | `9013a6c` "simple lab 9 solutions" (16:32): first version of this folder + reference frames + URDF |
-| Lab PC, uncommitted | `config.py`, `vision_pc.py`, `README.md` (all lab changes below) + this file |
-| Pi `~/mycobot-project/solutions/lab9_simple/` | identical to the Lab PC (copied with scp, md5 checked 17:1x); also on the Pi, not from this work: `PickAndPlaceTemplate.ipynb` modified, `Lab9_PickAndPlace_MoveIt_solution.ipynb` untracked |
+| `origin/myCobot-lab` | `44701f0` (10-04 23:09, Labs 3–7 from home) on top of `ffc595e` (10-02 17:25, all lab changes below + this file) and `9013a6c` (first version of this folder) |
+| `origin/myCobot-personal` | `32237ac`, 3 commits behind `myCobot-lab` (home work went to `myCobot-lab` directly) |
+| Lab PC `CoRobot2` | `44701f0`, clean |
+| Pi `cobot-pi1` | `9013a6c` (2 behind). `lab9_simple/` modified + untracked `STATUS.md` = byte-identical to `ffc595e` (scp copies). Not from this work: `PickAndPlaceTemplate.ipynb` modified, `Lab9_PickAndPlace_MoveIt_solution.ipynb` untracked (neither touched by the new commits) |
 
-To work at home: commit + push the Lab PC changes on `myCobot-lab`, then merge into `myCobot-personal` at home.
-On the Pi, `git checkout -- solutions/lab9_simple` before the next `git pull` (its copies equal the commit then).
+[Pi] pull (credential cache is empty after every reboot → GitHub token as password):
+```bash
+cd ~/mycobot-project
+git checkout -- solutions/lab9_simple        # drop the scp copies (identical to ffc595e)
+rm solutions/lab9_simple/STATUS.md           # untracked copy, would block the pull
+git pull                                      # username + token
+git log --oneline -1                          # 44701f0
+git status --short                            # only PickAndPlaceTemplate.ipynb + Lab9_PickAndPlace_MoveIt_solution.ipynb
+```
 
 ## 2. What works (seen in the lab, 10-02)
 
