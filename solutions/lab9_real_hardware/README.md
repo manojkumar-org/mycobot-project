@@ -141,3 +141,5 @@ success, miss in mm.
 | `no plan to pick … (reach limit?)` | object outside x 0.135–0.250 m: move it closer to the plate centre |
 | nozzle above / pressing into the object | `objects.surface_z_m` (±2 mm steps) |
 | object not released | controller without the valve fix: `git pull` + rebuild on the Pi |
+| MoveIt error −10 (`START_STATE_IN_COLLISION`) | arm is in a pose that collides in MoveIt's scene (10-05: the old `lab9_simple` home at 410 mm is inside the scene's `env_camera` box). Stop the controller, move the arm with pymycobot to `155 -20 245 180 0 0`, restart the controller |
+| MoveIt error −6 (`TIMED_OUT`) | execution took longer than MoveIt allows; the course controller **cannot be cancelled**, the arm finishes the move. brain_lab9 stops (no retry). Needs the execution limits in `move_group.launch.py` (×4 + 5 s, 10-05); restart MoveIt after changing them |

@@ -13,6 +13,17 @@ Compact log of what changed, newest first. Details and current state: [gameplan.
 - Tested: build (Lab PC); detection on the 10-02 frame; MoveIt plan-only grid (plate reachable x 0.135–0.250 m with
   yaw retries; random IK failures otherwise); end-to-end in simulation (domain 93): cylinder + cube picked and binned.
   Not yet on the robot; Pi needs `git pull` + controller rebuild.
+- First robot runs of `brain_lab9`, fixes:
+  - MoveIt −10 (start state in collision): the old `lab9_simple` home (flange 410 mm) lies in the scene's `env_camera`
+    box → both versions now share the home `[0, 180, 200, -180, 0, 0]` (old line kept as a comment).
+  - MoveIt −6 (TIMED_OUT) on every execution: the real controller is slower than plan × 1.2 + 0.5 s and ignores cancel;
+    the brain retried −6 and stacked 5 home trajectories → −6 no longer retried; `move_group.launch.py` execution
+    limits × 4 + 5 s.
+  - Slow, stop-and-go motion: the controller sent every waypoint at 100 × velocity (5–20) and the brain used velocity
+    scaling 0.3 → controller sends one waypoint per ≥ 0.25 s at speed 40–90 and waits for arrival; scaling 1.0.
+  - Home as a joint posture (`home_joints_deg` [109.86, 1.58, −93.51, 1.14, 0.08, 20.03]); the pose goal had J6 −158°.
+  - Open: MoveIt FK puts the flange 7.8 mm lower than pymycobot for the same joints → picks may stop ~8 mm high
+    (`tip_below_pump_head_m` 0.028 → 0.020 if so).
 
 ## 2026-10-04 (home laptop, uncommitted)
 

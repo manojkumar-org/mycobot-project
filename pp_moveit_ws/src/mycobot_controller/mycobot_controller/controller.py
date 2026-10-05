@@ -9,6 +9,17 @@ from control_msgs.action import FollowJointTrajectory
 from pymycobot.mycobot280 import MyCobot280
 import RPi.GPIO as GPIO
 
+# Lab 9 (10-05): smoother execution. The original sent every MoveIt waypoint at speed 100 x waypoint velocity
+# (often 5-20), so the arm got a new slow target every few ms and moved stop-and-go. Labs 7/8 sent 1 command at 50.
+MIN_DT = 0.25                    # s between commands to the robot (always including the last waypoint)
+SPEED_MIN, SPEED_MAX = 40, 90    # send_radians speed range
+ARRIVE_TOL = 0.03                # rad (~1.7 deg): last waypoint reached
+ARRIVE_TIMEOUT = 5.0             # s to wait for the arm to arrive before reporting success
+
+
+def t_of(point):
+    return point.time_from_start.sec + point.time_from_start.nanosec * 1e-9
+
 class Controller(Node):
     def __init__(self):
         super().__init__("controller")
@@ -73,20 +84,36 @@ class Controller(Node):
 
     # execute trajectory calculated by moveit
     def execute_trajectory(self, goal_handle):
-        self.get_logger().info("Executing trajectory...")
-        waypoints = goal_handle.request.trajectory.points
-        print(waypoints)
+        points = goal_handle.request.trajectory.points
+        # Lab 9: keep one waypoint every MIN_DT seconds plus the last one
+        waypoints, t_last = [], -1e9
+        for i, point in enumerate(points):
+            if i == len(points) - 1 or t_of(point) - t_last >= MIN_DT:
+                waypoints.append(point)
+                t_last = t_of(point)
+        self.get_logger().info(f"Executing trajectory: {len(waypoints)} of {len(points)} waypoints...")
         for i, point in enumerate(waypoints):
-            # send joint angles
-            speed = int(100 * np.max(np.abs(point.velocities)))         # this sets the speed to the max. single-joint-velocity defined by moveit
-            self.mc.send_radians(point.positions, speed)
+            # send joint angles; speed from the max. single-joint velocity defined by moveit, limited to 40..90
+            vel = np.max(np.abs(point.velocities)) if len(point.velocities) else 0.0
+            speed = int(np.clip(100 * vel, SPEED_MIN, SPEED_MAX))
+            self.mc.send_radians(list(point.positions), speed)
 
             # sleep duration till next waypoint
-            if i < (len(waypoints) - 1):                                # this insures that there is no error on the last waypoint
-                duration = ((waypoints[i+1].time_from_start.sec + waypoints[i+1].time_from_start.nanosec * 1e-9) 
-                - (point.time_from_start.sec + point.time_from_start.nanosec * 1e-9))
-                if duration > 0.01:                                     # this ensures that there is no error for extremely short waypoint durations 
-                    time.sleep(duration)                                # (shouldnt happen anyways)
+            if i < (len(waypoints) - 1):
+                duration = t_of(waypoints[i + 1]) - t_of(point)
+                if duration > 0.01:
+                    time.sleep(duration)
+
+        # Lab 9: wait until the arm is at the last waypoint, so the next plan starts from the real pose
+        target = np.array(waypoints[-1].positions)
+        t0 = time.time()
+        while time.time() - t0 < ARRIVE_TIMEOUT:
+            q = self.mc.get_radians()
+            if isinstance(q, list) and len(q) == 6 and np.max(np.abs(np.array(q) - target)) < ARRIVE_TOL:
+                break
+            time.sleep(0.1)
+        else:
+            self.get_logger().warn(f"arm not at the last waypoint after {ARRIVE_TIMEOUT} s")
 
         result = FollowJointTrajectory.Result()
         result.error_code = 0

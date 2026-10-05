@@ -22,7 +22,7 @@ from mycobot_interfaces.srv import GetObject
 from moveit_msgs.action import MoveGroup
 from moveit_msgs.srv import GetCartesianPath
 from moveit_msgs.msg import (MotionPlanRequest, Constraints, PositionConstraint, OrientationConstraint, BoundingVolume,
-                             CollisionObject, AttachedCollisionObject)
+                             CollisionObject, AttachedCollisionObject, JointConstraint)
 from control_msgs.action import FollowJointTrajectory
 from geometry_msgs.msg import Pose, PoseStamped
 from shape_msgs.msg import SolidPrimitive
@@ -33,7 +33,11 @@ DEFAULT_CONFIG = "~/mycobot-project/solutions/lab9_real_hardware/lab9.yaml"
 MAX_PER_COLOR = 6                   # auto sort: at most this many picks per colour
 DOWN = [0.0, math.pi, 0.0]          # pump_head pointing down (roll, pitch, yaw); yaw 0: suction needs no yaw
 TOUCH = ["pump_head", "pump_box", "env_table"]
-PLAN_FAIL = (-1, -2, -6, -31)       # PLANNING_FAILED, INVALID_MOTION_PLAN, TIMED_OUT, NO_IK_SOLUTION: nothing moved
+JOINTS = ["joint2_to_joint1", "joint3_to_joint2", "joint4_to_joint3", "joint5_to_joint4", "joint6_to_joint5",
+          "joint6output_to_joint6"]     # same order and sign as pymycobot get_angles (controller: get_radians)
+PLAN_FAIL = (-1, -2, -31)           # PLANNING_FAILED, INVALID_MOTION_PLAN, NO_IK_SOLUTION: nothing moved, retry is safe
+                                    # NOT -6 TIMED_OUT: execution had started and the controller cannot be cancelled
+                                    # (10-05: retrying it stacked 5 home trajectories on the real arm)
 SCENE_SETTLE_S = 0.5                # move_group applies scene topics asynchronously; planning earlier gave error -2
 
 
@@ -162,6 +166,14 @@ class BrainLab9(Node):
         time.sleep(0.5)
         self.get_logger().info(f"pump {state}")
 
+    def send_joint_goal(self, angles_deg):
+        """MoveIt plan + execute to a joint posture (pymycobot angles in deg). Returns the MoveIt error code."""
+        constraints = Constraints()
+        for name, a in zip(JOINTS, angles_deg):
+            constraints.joint_constraints.append(JointConstraint(joint_name=name, position=math.radians(a),
+                                                                 tolerance_above=0.01, tolerance_below=0.01, weight=1.0))
+        return self.send_constraints(constraints, f"joints {angles_deg}")
+
     def send_goal_pose(self, coords):
         """MoveIt plan + execute to a pump_head pose. Returns the MoveIt error code (1 = success)."""
         goal_pose = PoseStamped()
@@ -181,13 +193,16 @@ class BrainLab9(Node):
         constraints = Constraints()
         constraints.position_constraints.append(pc)
         constraints.orientation_constraints.append(oc)
+        return self.send_constraints(constraints, f"{[round(c, 3) for c in coords]}")
+
+    def send_constraints(self, constraints, label):
         req = MotionPlanRequest(group_name="arm_group", num_planning_attempts=10, allowed_planning_time=5.0,
                                 max_velocity_scaling_factor=float(self.rb["velocity_scaling"]),
                                 max_acceleration_scaling_factor=float(self.rb["velocity_scaling"]))
         req.goal_constraints.append(constraints)
         goal = MoveGroup.Goal()
         goal.request = req
-        self.get_logger().info(f"move to {[round(c, 3) for c in coords]}")
+        self.get_logger().info(f"move to {label}")
         goal_future = self.trajectory_client.send_goal_async(goal)
         rclpy.spin_until_future_complete(self, goal_future)
         handle = goal_future.result()
@@ -247,6 +262,21 @@ class BrainLab9(Node):
         return traj is not None and self.execute(traj)
 
     def go_home(self):
+        if self.rb.get("home_joints_deg"):                      # fixed posture (joint-space goal)
+            for _ in range(3):
+                code = self.send_joint_goal(self.rb["home_joints_deg"])
+                if code == 1:
+                    return True
+                if code not in PLAN_FAIL:
+                    break
+            self.get_logger().error("could not reach home posture")
+            return False
+        h = self.rb["home"]
+        if abs(h[3]) < 1e-3 and abs(h[4] - math.pi) < 1e-3:   # home with the tool down: yaw is free, use the retries
+            if self.move_down(h[0], h[1], h[2]) is not None:
+                return True
+            self.get_logger().error("could not reach home")
+            return False
         for _ in range(3):                                   # planner fails at random sometimes
             code = self.send_goal_pose(self.rb["home"])
             if code == 1:

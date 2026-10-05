@@ -42,8 +42,11 @@ robot:                      # brain_lab9 (MoveIt link pump_head = flange + 0.040
   tip_below_pump_head_m: 0.028   # contact: pump_head z = object top + this
   hover_m: 0.070            # above the contact pose (Lab 8 HOVER_MARGIN)
   drop_tip_z_m: 0.100       # nozzle tip height at release above a bin (clears a cube already inside by ~25 mm)
-  velocity_scaling: 0.3     # MoveIt max velocity/acceleration scaling (course: 1.0)
-  home: [0.16, -0.06, 0.32, 0.0, 1.57, 0.0]   # course home pose of pump_head (x y z roll pitch yaw)
+  velocity_scaling: 1.0     # MoveIt max velocity/acceleration scaling (course: 1.0; 0.3 on 10-05 was ~3x slower)
+  home_joints_deg: [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]   # home POSTURE (pymycobot get_angles, 10-05), used first;
+                            # its pymycobot coords: [2.7, 178.8, 199.9, 179.22, -0.18, -0.17]. Delete the line to use "home" below.
+  home: [0.0, 0.180, 0.160, 0.0, 3.14159, 0.0]   # fallback pose goal of pump_head (any posture; MoveIt chose J6 -158 deg)
+                            # = pymycobot [0, 180, 200, -180, 0, 0]; the course home was [0.16, -0.06, 0.32, 0, 1.57, 0]
   bins:                     # bin centre [x, y] per colour (lab9_simple BIN_COORDS, 10-05)
     red: [0.065, 0.170]
     yellow: [0.200, 0.170]
