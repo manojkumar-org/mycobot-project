@@ -2,6 +2,18 @@
 
 Compact log of what changed, newest first. Details and current state: [gameplan.md](gameplan.md), setup: [README.md](README.md).
 
+## 2026-10-05 (Lab PC, Lab 9 on the robot)
+
+- `lab9_simple` on the robot: markers re-measured from the robot centre (plate = Lab 8 workspace), then the plate moved
+  +45 mm in x after a collision + Pi crash near the base (x 120 mm); HSV outlines, cube/cylinder, blue by colour (not a
+  YOLO class), `[target]` print; Pi GPIO busy = a Jupyter kernel held the pins and the serial port.
+- **Lab 9 tasks chosen: object shape detection + extension of the object interface**, in the course ROS pipeline:
+  `solutions/lab9_real_hardware/README.md` + `lab9.yaml`; new `vision_lab9`, `brain_lab9`, `GetObject.srv`,
+  `lab9_real.launch.py`; `controller.py` pump off now opens valve 21 (Lab 8 fix). Old A/B/C guide → `old_tasks_ABC/`.
+- Tested: build (Lab PC); detection on the 10-02 frame; MoveIt plan-only grid (plate reachable x 0.135–0.250 m with
+  yaw retries; random IK failures otherwise); end-to-end in simulation (domain 93): cylinder + cube picked and binned.
+  Not yet on the robot; Pi needs `git pull` + controller rebuild.
+
 ## 2026-10-04 (home laptop, uncommitted)
 
 - Labs 3–7 solutions rewritten from the original templates: code cells = template cells with the blanks filled (Lab 3:

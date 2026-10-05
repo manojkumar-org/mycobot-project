@@ -31,6 +31,7 @@ setup(
     entry_points={
         'console_scripts': [
             'brain = mycobot_brain.brain:main',
+            'brain_lab9 = mycobot_brain.brain_lab9:main',
             'brain_test = mycobot_brain.brain_test:main',
         ],
     },

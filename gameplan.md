@@ -311,12 +311,14 @@ setup A0–A7, §6 simulation / real robot B1–B6 / stop / first pick and place
 surprises, why, tunable values, experiments, troubleshooting). PDF: `pdfs/Pick_And_Place-2.pdf` (Sep 23).
 
 **Structure (PDF):** Part 0 *Explore the existing system* is required; then **2 of 5 tasks** (A–E), the rest optional.
-**Approaches (decided 2026-10-02): A + B or B + C**, both implemented for the real system (no simulation):
-**[solutions/lab9_real_hardware/GUIDE.md](solutions/lab9_real_hardware/GUIDE.md)** (Part 0, Tasks A, B, C step by step, code explained;
-results go to `lab9/`). Old synthetic-data solution kept in `solutions/lab9_old_synthetic/` for reference.
+**Approach (decided 2026-10-05): object shape detection + extension of the object interface**, in the course ROS
+pipeline with the values that worked in `solutions/lab9_simple/`: **[solutions/lab9_real_hardware/README.md](solutions/lab9_real_hardware/README.md)**
+(new `vision_lab9`, `brain_lab9`, `GetObject.srv`, controller valve fix; run order, Part 0, evaluation). Earlier plan
+(2026-10-02, A + B or B + C): `solutions/lab9_real_hardware/old_tasks_ABC/GUIDE.md`. Single-shot fallback without
+MoveIt: `solutions/lab9_simple/`. Old synthetic-data solution kept in `solutions/lab9_old_synthetic/` for reference.
 
 **What runs where:**
-- Pi: only `mycobot_controller` (serial + pump GPIO 20).
+- Pi: only `mycobot_controller` (serial + pump GPIO 20; valve GPIO 21 added 2026-10-05).
 - Lab PC: camera, vision, MoveIt, brain, RViz.
 - Same branch `myCobot-lab` on both, `ROS_DOMAIN_ID=47`, `~/rosenv9.sh` in every terminal, ufw allows the other host.
 

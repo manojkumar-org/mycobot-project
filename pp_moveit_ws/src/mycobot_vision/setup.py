@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             'vision = mycobot_vision.vision:main',
+            'vision_lab9 = mycobot_vision.vision_lab9:main',
             'vision2 = mycobot_vision.vision2:main',
         ],
     },

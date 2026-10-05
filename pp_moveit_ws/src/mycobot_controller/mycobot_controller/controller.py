@@ -25,6 +25,8 @@ class Controller(Node):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(20, GPIO.OUT)
         GPIO.output(20, 1)
+        GPIO.setup(21, GPIO.OUT)                    # Lab 9: release valve (active low), as in Lab 8
+        GPIO.output(21, 1)
         self.get_logger().info("Pump ready!")
 
         # initiate trajectory action server
@@ -59,8 +61,11 @@ class Controller(Node):
     def control_pump(self, state_handle):
         if state_handle.data == "on":               # bool state didnt work here,
             GPIO.output(20, 0)                 # because almost every input was interpreted as 'true'
+            GPIO.output(21, 0)                 # Lab 9: valve closed while sucking (Lab 8 pump_on)
         elif state_handle.data == "off":
             GPIO.output(20, 1)
+            time.sleep(0.3)
+            GPIO.output(21, 1)                 # Lab 9: open the valve so the object is released (Lab 8 pump_off)
         else:
             self.get_logger().error(f"Invalid pump state: {state_handle}. Provide 'on' to turn on or 'off' to turn off.")
         self.get_logger().info(f"Pump is now {state_handle.data}!")

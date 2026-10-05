@@ -3,7 +3,8 @@
 
 Mapping image -> robot: the 2 ArUco marker centres (measured in the robot frame) give a 2D similarity
 (scale, rotation, shift); the camera looks straight down, so that is enough for the plate plane.
-Cube tops are CUBE_MM (35 mm) above the plate, so their pixel is shifted outwards; top_to_xy() undoes that (parallax).
+Object tops are CUBE_MM / CYL_HEIGHT_MM above the plate, so their pixel is shifted outwards; top_to_xy() undoes that.
+YOLO finds red/yellow/green/cyan cubes; blue (not a model class) is found by HSV colour inside the workspace.
 
 Run (README step 4): ~/venvs/mycobot/bin/python vision_pc.py   (ROS sourced, ROS_DOMAIN_ID=47)
 Keys in the window: space = ARMED/SAFE, c = re-read markers, s = save frame, q = quit.
@@ -121,50 +122,113 @@ def draw_map(img, pm):
 
 
 # ---------------- detection ----------------
-def detect_cubes(model, frame, pm):
-    """List of dicts: color, u, v, x, y (mm), yaw (deg, -45..45), inside (workspace)."""
-    r = model(frame, conf=C.YOLO_CONF, verbose=False)[0]
+def hue_mask(hsv, color):
+    """Saturated pixels of one colour (C.HUE_RANGES); any saturated colour if the colour has no hue range."""
+    sat = cv2.inRange(hsv, (0, C.SAT_MIN, C.VAL_MIN), (179, 255, 255))
+    ranges = C.HUE_RANGES.get(color)
+    if ranges is None:
+        return sat
+    m = np.zeros(sat.shape, np.uint8)
+    for lo, hi in ranges:
+        m |= cv2.inRange(hsv, (lo, C.SAT_MIN, C.VAL_MIN), (hi, 255, 255))
+    return cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+
+
+def outline(cnt, pm):
+    """Shape of one colour blob: ('cyl', ((cx, cy), r), nan) or ('cube', minAreaRect, yaw in the robot frame)."""
+    (cx, cy), r = cv2.minEnclosingCircle(cnt)
+    fill = cv2.contourArea(cnt) / (math.pi * r * r) if r > 0 else 0.0
+    if fill >= C.CYL_FILL_MIN:                            # circle fills its enclosing circle, a square only ~64 %
+        return "cyl", ((cx, cy), r), float("nan")
+    rect = cv2.minAreaRect(cnt)
+    p0, p1 = cv2.boxPoints(rect)[:2]                      # one edge of the rotated rectangle
+    (x0, y0), (x1, y1) = pm.to_robot(*p0), pm.to_robot(*p1)
+    yaw = (math.degrees(math.atan2(y1 - y0, x1 - x0)) + 45) % 90 - 45
+    return "cube", rect, yaw
+
+
+def largest_blob(mask):
+    cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return max(cnts, key=cv2.contourArea) if cnts else None
+
+
+def make_det(pm, color, conf, src, box, cnt, uv_top=None):
+    """Detection dict. Position: YOLO keypoint 4 (top-face centre, at full height) if given, else blob centroid
+    (top + visible sides, ~half height)."""
+    shape, geom, yaw = outline(cnt, pm) if cnt is not None else ("cube", None, float("nan"))
+    height = C.CYL_HEIGHT_MM if shape == "cyl" else C.CUBE_MM
+    if uv_top is not None:
+        (u, v), h = uv_top, height
+    elif cnt is not None:
+        mo = cv2.moments(cnt)
+        (u, v), h = (mo["m10"] / mo["m00"], mo["m01"] / mo["m00"]), height / 2
+    else:
+        (u, v), h = (box[:2] + box[2:]) / 2, height / 2
+    x, y = pm.top_to_xy(u, v, h)
+    inside = C.WS_X[0] <= x <= C.WS_X[1] and C.WS_Y[0] <= y <= C.WS_Y[1]
+    return dict(color=color, conf=conf, src=src, box=box, shape=shape, geom=geom, height=height,
+                u=u, v=v, x=x, y=y, yaw=yaw, inside=inside)
+
+
+def detect_objects(model, frame, pm):
+    """YOLO (red/yellow/green/cyan cubes) + HSV blobs for C.HSV_COLORS (blue, not a YOLO class).
+    Every detection gets a colour outline: rotated rectangle (cube, with yaw) or circle (cylinder)."""
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    H, W = frame.shape[:2]
     out = []
-    if r.boxes is None or len(r.boxes) == 0:
-        return out
-    boxes = r.boxes.xyxy.cpu().numpy()
-    cls = r.boxes.cls.cpu().numpy().astype(int)
-    conf = r.boxes.conf.cpu().numpy()
-    kps = r.keypoints.xy.cpu().numpy() if r.keypoints is not None else None
-    for i in range(len(boxes)):
-        side_mm = max(boxes[i][2] - boxes[i][0], boxes[i][3] - boxes[i][1]) * abs(pm.a)
-        if not C.BOX_MM[0] <= side_mm <= C.BOX_MM[1]:
-            continue                                      # not cube-sized (e.g. the white plate)
-        color = C.CLASS_TO_COLOR.get(model.names[cls[i]], model.names[cls[i]])
-        if kps is not None and kps[i][4].any():           # keypoint 4 = top-face centre (course model)
-            u, v = kps[i][4]
-            h = C.CUBE_MM
-        else:                                             # fallback: box centre ~ half height
-            u, v = (boxes[i][:2] + boxes[i][2:]) / 2
-            h = C.CUBE_MM / 2
-        x, y = pm.top_to_xy(u, v, h)
-        yaw = float("nan")
-        if kps is not None and kps[i][0].any() and kps[i][1].any():   # keypoints 0 -> 1 = one top edge
-            (x0, y0), (x1, y1) = pm.to_robot(*kps[i][0]), pm.to_robot(*kps[i][1])
-            yaw = (math.degrees(math.atan2(y1 - y0, x1 - x0)) + 45) % 90 - 45
-        inside = C.WS_X[0] <= x <= C.WS_X[1] and C.WS_Y[0] <= y <= C.WS_Y[1]
-        out.append(dict(color=color, conf=float(conf[i]), box=boxes[i], u=u, v=v, x=x, y=y, yaw=yaw,
-                        inside=inside, kps=None if kps is None else kps[i]))
+    r = model(frame, conf=C.YOLO_CONF, verbose=False)[0]
+    if r.boxes is not None and len(r.boxes) > 0:
+        boxes = r.boxes.xyxy.cpu().numpy()
+        cls = r.boxes.cls.cpu().numpy().astype(int)
+        conf = r.boxes.conf.cpu().numpy()
+        kps = r.keypoints.xy.cpu().numpy() if r.keypoints is not None else None
+        for i in range(len(boxes)):
+            side_mm = max(boxes[i][2] - boxes[i][0], boxes[i][3] - boxes[i][1]) * abs(pm.a)
+            if not C.BOX_MM[0] <= side_mm <= C.BOX_MM[1]:
+                continue                                  # not object-sized (e.g. the white plate)
+            color = C.CLASS_TO_COLOR.get(model.names[cls[i]], model.names[cls[i]])
+            x1, y1 = np.maximum(boxes[i][:2].astype(int) - 3, 0)
+            x2, y2 = np.minimum(boxes[i][2:].astype(int) + 3, [W, H])
+            cnt = largest_blob(hue_mask(hsv[y1:y2, x1:x2], color))
+            if cnt is not None:
+                cnt = cnt + np.array([x1, y1])
+            uv = kps[i][4] if kps is not None and kps[i][4].any() else None   # keypoint 4 = top-face centre
+            out.append(make_det(pm, color, float(conf[i]), "yolo", boxes[i], cnt, uv))
+    # colours the model does not know: HSV blobs inside the workspace (+ margin), not already boxed by YOLO
+    m = C.HSV_MARGIN_MM
+    ws = [(C.WS_X[0] - m, C.WS_Y[0] - m), (C.WS_X[1] + m, C.WS_Y[0] - m),
+          (C.WS_X[1] + m, C.WS_Y[1] + m), (C.WS_X[0] - m, C.WS_Y[1] + m)]
+    ws_mask = np.zeros((H, W), np.uint8)
+    cv2.fillPoly(ws_mask, [np.array([P(pm.to_image(*p)) for p in ws], np.int32)], 255)
+    for color in C.HSV_COLORS:
+        cnts, _ = cv2.findContours(hue_mask(hsv, color) & ws_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in cnts:
+            (cx, cy), rad = cv2.minEnclosingCircle(cnt)
+            if not C.BOX_MM[0] <= 2 * rad * abs(pm.a) <= C.BOX_MM[1]:
+                continue
+            if any(d["box"][0] <= cx <= d["box"][2] and d["box"][1] <= cy <= d["box"][3] for d in out):
+                continue
+            bx, by, bw, bh = cv2.boundingRect(cnt)
+            out.append(make_det(pm, color, 1.0, "hsv", np.array([bx, by, bx + bw, by + bh], float), cnt))
     return out
 
 
-def draw_cubes(img, dets, target):
+def draw_objects(img, dets, target):
     for d in dets:
         col = (0, 255, 0) if d["inside"] else (0, 0, 255)
-        x1, y1, x2, y2 = d["box"].astype(int)
-        cv2.rectangle(img, (x1, y1), (x2, y2), col, 2 if d is target else 1)
-        if d["kps"] is not None:
-            for k in d["kps"]:
-                if k.any():
-                    cv2.circle(img, P(k), 3, (255, 0, 0), -1)
-        cv2.putText(img, f"{d['color']} {d['conf']:.2f}", (x1, y1 - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1)
-        cv2.putText(img, f"x{d['x']:.0f} y{d['y']:.0f} yaw{d['yaw']:.0f}", (x1, y1 - 6),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1)
+        th = 2 if d is target else 1
+        if d["geom"] is None:
+            cv2.rectangle(img, P(d["box"][:2]), P(d["box"][2:]), col, th)
+        elif d["shape"] == "cyl":
+            cv2.circle(img, P(d["geom"][0]), int(round(d["geom"][1])), col, th)
+        else:
+            cv2.drawContours(img, [np.int32(np.round(cv2.boxPoints(d["geom"])))], 0, col, th)
+        cv2.circle(img, P((d["u"], d["v"])), 3, (255, 0, 0), -1)          # point that is sent
+        x1, y1 = int(d["box"][0]), int(d["box"][1])
+        src = f"{d['conf']:.2f}" if d["src"] == "yolo" else "hsv"
+        yaw = "-" if math.isnan(d["yaw"]) else f"{d['yaw']:.0f}"
+        cv2.putText(img, f"{d['color']} {d['shape']} {src}", (x1, y1 - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1)
+        cv2.putText(img, f"({d['x']:.0f}, {d['y']:.0f}) yaw {yaw}", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1)
 
 
 def pick_target(dets):
@@ -193,7 +257,7 @@ class Sender:
         m.header.stamp = self.node.get_clock().now().to_msg()
         m.header.frame_id = d["color"]
         m.point.x, m.point.y = d["x"] / 1000.0, d["y"] / 1000.0
-        m.point.z = (C.SURFACE_Z_MM + C.CUBE_MM) / 1000.0
+        m.point.z = (C.SURFACE_Z_MM + d["height"]) / 1000.0
         self.pub.publish(m)
         return True
 
@@ -248,7 +312,7 @@ def main():
     cap = open_camera()
     pm = calibrate(grab(cap, 20))
     sender = Sender()
-    armed, cand, t0, last_send = False, None, 0.0, 0.0
+    armed, cand, t0, last_send, shown = False, None, 0.0, 0.0, None
     cv2.namedWindow("lab9 simple", cv2.WINDOW_NORMAL)
     try:
         while True:
@@ -257,9 +321,19 @@ def main():
             target = None
             if pm is not None:
                 draw_map(vis, pm)
-                dets = detect_cubes(model, frame, pm)
+                dets = detect_objects(model, frame, pm)
                 target = pick_target(dets)
-                draw_cubes(vis, dets, target)
+                draw_objects(vis, dets, target)
+            # print the chosen object once whenever the choice changes (colour, shape or > STABLE_MM)
+            if target is None:
+                if shown is not None:
+                    print("[target] none")
+                shown = None
+            elif shown is None or (shown["color"], shown["shape"]) != (target["color"], target["shape"]) or \
+                    math.hypot(shown["x"] - target["x"], shown["y"] - target["y"]) > C.STABLE_MM:
+                shown = target
+                print(f"[target] {target['color']} {target['shape']} ({target['x']:.1f}, {target['y']:.1f}) mm"
+                      f"  top z {C.SURFACE_Z_MM + target['height']:.0f}")
             now = time.time()
             # stability: same colour, within STABLE_MM, for STABLE_S
             if target is None:
