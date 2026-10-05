@@ -17,7 +17,7 @@ Written 2026-10-05 15:45. **The provided course packages in `pp_moveit_ws/src/my
 
 | Former change inside a course package | Now | How it is used instead |
 |---|---|---|
-| `mycobot_controller/controller.py`: valve GPIO 21 + smooth execution | `lab9_pick_place/controller_lab9.py` (copy + both fixes) | Pi: `ros2 run lab9_pick_place controller_lab9` **instead of** `ros2 run mycobot_controller controller`. Same node name, topics and action, so MoveIt and both brains work with either |
+| `mycobot_controller/controller.py`: valve GPIO 21 + smooth execution | `lab9_pick_place/controller_lab9.py` (copy + both fixes) | Pi: `python3 ~/mycobot-project/pp_moveit_ws/src/lab9_pick_place/lab9_pick_place/controller_lab9.py` **instead of** `ros2 run mycobot_controller controller` (not built on the Pi). Same node name, topics and action, so MoveIt and both brains work with either |
 | `mycobot_280_moveit2/launch/move_group.launch.py`: execution limits × 4 + 5 s | `lab9_pick_place/launch/lab9_moveit.launch.py` (same MoveIt config + 3 parameters, incl. the course's start tolerance 0.3) | `ros2 launch lab9_pick_place lab9_moveit.launch.py` instead of the course launch; `lab9_real.launch.py` uses it |
 | `mycobot_interfaces/srv/GetObject.srv` + `CMakeLists.txt` line | `lab9_interfaces/srv/GetObject.srv` | type `lab9_interfaces/srv/GetObject` (service name `/get_object` unchanged) |
 | `mycobot_vision/vision_lab9.py` + `setup.py` entry + `package.xml` yaml | `lab9_pick_place/vision_lab9.py` | `ros2 run lab9_pick_place vision_lab9` (still serves the course `/cube_coordinates` too) |
@@ -46,4 +46,5 @@ rm -rf build/mycobot_interfaces install/mycobot_interfaces build/mycobot_vision 
 colcon build --symlink-install --packages-select mycobot_interfaces mycobot_vision mycobot_brain lab9_interfaces lab9_pick_place
 ```
 On the Pi only `mycobot_controller` was built before; it imports from `src/` (develop install), so after `git pull` it is
-the original again without a rebuild. New there: `colcon build --symlink-install --parallel-workers 1 --packages-select lab9_pick_place`.
+the original again without a rebuild. `lab9_pick_place` cannot be built on the Pi (its `package.xml` depends on course
+packages that are not built there); `controller_lab9.py` is started directly with `python3` instead.

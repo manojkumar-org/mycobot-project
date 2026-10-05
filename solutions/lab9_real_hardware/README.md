@@ -70,12 +70,12 @@ cd ~/mycobot-project/pp_moveit_ws && source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install --packages-select lab9_interfaces lab9_pick_place
 ```
 ```bash
-# [Pi]  (GitHub token for the pull after a reboot)
+# [Pi]  (GitHub token for the pull after a reboot); nothing to build
 cd ~/mycobot-project && git pull
-cd pp_moveit_ws && source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install --parallel-workers 1 --packages-select lab9_pick_place
 ```
-`lab9_pick_place` is pure Python (seconds to build, nothing compiled on the Pi). Both machines: `source ~/rosenv9.sh` in
+The Pi runs only `controller_lab9.py`, started directly with `python3` (§4 step 1). `colcon build` of `lab9_pick_place`
+does **not** work on the Pi: its `package.xml` depends on course packages that are not built there (MoveIt is not
+installed on the Pi), 10-05. Both machines: `source ~/rosenv9.sh` in
 **every** terminal (ROS Jazzy + `pp_moveit_ws/install` + `ROS_DOMAIN_ID=47`), and leave the `(mycobot)` venv first
 (`deactivate`): the nodes run with the system Python.
 
@@ -86,7 +86,7 @@ plate between x ≈ 135 and 250 mm, arm **not** in the old 410 mm pose (see §8,
 
 | # | Where | Command | Check / what it does |
 |---|---|---|---|
-| 1 | [Pi] terminal 1 | `source ~/rosenv9.sh && ros2 run lab9_pick_place controller_lab9` | `Pump ready!`, `FJT action server ready!`. Robot driver: publishes `/joint_states` (20 Hz), executes trajectories, pump + valve. Moves nothing by itself |
+| 1 | [Pi] terminal 1 | `source ~/rosenv9.sh && python3 ~/mycobot-project/pp_moveit_ws/src/lab9_pick_place/lab9_pick_place/controller_lab9.py` | `Pump ready!`, `FJT action server ready!`. Robot driver: publishes `/joint_states` (20 Hz), executes trajectories, pump + valve. Moves nothing by itself |
 | 2 | Lab PC terminal 1 | `source ~/rosenv9.sh && ros2 topic hz /joint_states` | ~20 Hz = network + controller OK; Ctrl+C |
 | 3 | Lab PC terminal 1 (desktop) | `ros2 launch lab9_pick_place lab9_real.launch.py` | 3 tabs: **MoveIt** (`You can start planning now!`), **Camera**, **Vision** (`calibrated: … 1.0 mm/px, rotation ~89 deg`) |
 | 4 | Lab PC | look at the `vision_lab9` window | yellow box on the plate, magenta circle on the robot base, each object outlined + `red_cube_1 (x, y) mm`; log `objects: …` on every change |
@@ -145,7 +145,7 @@ Then menu `1` with two objects of the same colour (selection list) and menu `2`.
 
 | Symptom | Cause → fix |
 |---|---|
-| `Package 'lab9_pick_place' not found` | terminal not sourced: `deactivate; source ~/rosenv9.sh`; on the Pi: build step §3 |
+| `Package 'lab9_pick_place' not found` | Lab PC terminal not sourced: `deactivate; source ~/rosenv9.sh` (on the Pi the package is not built: start the controller with `python3`, §4 step 1) |
 | brain waits for `follow_joint_trajectory` | `controller_lab9` not running on the Pi, or domain / firewall: step 2 |
 | controller: GPIO busy / serial errors | another program holds the robot (Jupyter kernel, `robot_pi.py`, the course controller): stop it |
 | vision: `marker(s) [..] not visible` | uncover the markers, press `c` |
