@@ -8,7 +8,8 @@ Changes against brain.py:
   - bins per colour from lab9.yaml; menu as a loop (no recursive calls), auto sort mode
   - pick goes straight to the bin (no home detour); yaw retries because MoveIt's IK fails at random for some yaws
   - MoveIt velocity scaling from lab9.yaml (0.3), planning/execution failures stop the sequence (pump off, home)
-Config: parameter "config" (default ~/mycobot-project/solutions/lab9_real_hardware/lab9.yaml).
+Config: parameter "config" (default lab9_pick_place/config/lab9.yaml).
+Run: ros2 run lab9_pick_place brain_lab9 (Lab PC, last)
 """
 import math
 import os
@@ -18,7 +19,7 @@ import rclpy
 import yaml
 from rclpy.node import Node
 from rclpy.action import ActionClient
-from mycobot_interfaces.srv import GetObject
+from lab9_interfaces.srv import GetObject
 from moveit_msgs.action import MoveGroup
 from moveit_msgs.srv import GetCartesianPath
 from moveit_msgs.msg import (MotionPlanRequest, Constraints, PositionConstraint, OrientationConstraint, BoundingVolume,
@@ -29,7 +30,9 @@ from shape_msgs.msg import SolidPrimitive
 from std_msgs.msg import String
 from scipy.spatial.transform import Rotation
 
-DEFAULT_CONFIG = "~/mycobot-project/solutions/lab9_real_hardware/lab9.yaml"
+from ament_index_python.packages import get_package_share_directory
+
+DEFAULT_CONFIG = os.path.join(get_package_share_directory("lab9_pick_place"), "config", "lab9.yaml")   # symlink to src
 MAX_PER_COLOR = 6                   # auto sort: at most this many picks per colour
 DOWN = [0.0, math.pi, 0.0]          # pump_head pointing down (roll, pitch, yaw); yaw 0: suction needs no yaw
 TOUCH = ["pump_head", "pump_box", "env_table"]

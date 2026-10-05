@@ -1,5 +1,9 @@
 # Lab 9 simple: status and next fix (2026-10-02 17:25, end of lab session)
 
+> **2026-10-05: no longer the main approach.** Lab 9 now runs in the course ROS pipeline:
+> [../lab9_real_hardware/README.md](../lab9_real_hardware/README.md). This folder is the single-shot fallback; its values
+> (markers, heights, bins, home) are mirrored in `lab9_real_hardware/lab9.yaml`. Sections below are the 10-02 state.
+
 Read with [README.md](README.md) (run order) and [config.py](config.py) (all values). This file = what happened in the lab,
 what is still wrong, and the planned fix (robot-taught calibration) to implement at home.
 

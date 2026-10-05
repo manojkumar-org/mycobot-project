@@ -7,7 +7,8 @@ Services:
   /get_object        GetObject     colour + shape (+ id) -> found, id, pose of the object top, matches
   /cube_coordinates  GetCubeCoords original interface (colour -> nearest cube), so the original brain still runs
 Window keys: c = re-read the markers, s = save raw + annotated frame to ~/mycobot-project/lab9/frames/
-Config: parameter "config" (default ~/mycobot-project/solutions/lab9_real_hardware/lab9.yaml); "show" (default true).
+Config: parameter "config" (default lab9_pick_place/config/lab9.yaml); "show" (default true).
+Run: ros2 run lab9_pick_place vision_lab9
 """
 import math
 import os
@@ -20,9 +21,12 @@ import yaml
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from mycobot_interfaces.srv import GetCubeCoords, GetObject
+from mycobot_interfaces.srv import GetCubeCoords        # course service (unchanged), served for the original brain
+from lab9_interfaces.srv import GetObject
 
-DEFAULT_CONFIG = "~/mycobot-project/solutions/lab9_real_hardware/lab9.yaml"
+from ament_index_python.packages import get_package_share_directory
+
+DEFAULT_CONFIG = os.path.join(get_package_share_directory("lab9_pick_place"), "config", "lab9.yaml")   # symlink to src
 FRAMES_DIR = os.path.expanduser("~/mycobot-project/lab9/frames")
 DRAW = {"red": (0, 0, 255), "yellow": (0, 255, 255), "green": (0, 255, 0), "blue": (255, 0, 0)}
 STALE_S = 1.0          # objects older than this are not returned (camera stopped)

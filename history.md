@@ -24,6 +24,15 @@ Compact log of what changed, newest first. Details and current state: [gameplan.
   - Home as a joint posture (`home_joints_deg` [109.86, 1.58, −93.51, 1.14, 0.08, 20.03]); the pose goal had J6 −158°.
   - Open: MoveIt FK puts the flange 7.8 mm lower than pymycobot for the same joints → picks may stop ~8 mm high
     (`tip_below_pump_head_m` 0.028 → 0.020 if so).
+- Committed `2b1f0bf` (13:40) + `c456522` (15:13), pushed; Pi pulled `c456522`. Changes inside the provided course packages
+  listed in `solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md` (2 course files modified: `controller.py`,
+  `move_group.launch.py`; 4 small config edits; 4 added files); how to restore the originals for the Part 0 baseline.
+- **Package split (15:45):** course packages restored to `04c715b` (as delivered); all Lab 9 code moved (git mv) into
+  `pp_moveit_ws/src/lab9_interfaces` + `lab9_pick_place` (`controller_lab9` = course controller + fixes, run on the Pi
+  instead of `mycobot_controller`; `lab9_moveit.launch.py` = course move_group + execution limits; `config/lab9.yaml`).
+  Lab PC rebuilt (old build/install of the 3 course packages deleted first); same simulation test passed. README rewritten
+  (run order with the new commands); `COURSE_PACKAGE_CHANGES.md` = what replaces what. Pi: `git pull` + build `lab9_pick_place`.
+- Next: first full pick on the robot (check suction contact / 8 mm), then auto sort; Part 0 baseline; evaluation of both tasks.
 
 ## 2026-10-04 (home laptop, uncommitted)
 

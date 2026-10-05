@@ -1,4 +1,4 @@
-# Lab 9: request one object by colour and shape (served by mycobot_vision/vision_lab9 on /get_object)
+# Lab 9: request one object by colour and shape (served by lab9_pick_place/vision_lab9 on /get_object)
 string color      # "red", "yellow", "green", "blue"; "" = any colour
 string shape      # "cube", "cylinder"; "" = any shape ("unknown" objects are only returned for "")
 string id         # optional: a specific id from "matches" of an earlier answer; "" = nearest match

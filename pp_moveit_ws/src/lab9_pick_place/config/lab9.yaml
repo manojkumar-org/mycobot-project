@@ -1,4 +1,4 @@
-# Lab 9 real hardware: every value used by vision_lab9 and brain_lab9 (read at node start).
+# Lab 9 real hardware (package lab9_pick_place): every value used by vision_lab9 and brain_lab9 (read at node start).
 # Frame g_base = robot base frame = pymycobot frame (x forward, y left, z up). Units: m and rad unless stated.
 # Values = the working run of solutions/lab9_simple/config.py on 2026-10-05 (mm there, m here). Keep both in sync.
 

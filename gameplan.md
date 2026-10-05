@@ -313,12 +313,17 @@ surprises, why, tunable values, experiments, troubleshooting). PDF: `pdfs/Pick_A
 **Structure (PDF):** Part 0 *Explore the existing system* is required; then **2 of 5 tasks** (A–E), the rest optional.
 **Approach (decided 2026-10-05): object shape detection + extension of the object interface**, in the course ROS
 pipeline with the values that worked in `solutions/lab9_simple/`: **[solutions/lab9_real_hardware/README.md](solutions/lab9_real_hardware/README.md)**
-(new `vision_lab9`, `brain_lab9`, `GetObject.srv`, controller valve fix; run order, Part 0, evaluation). Earlier plan
+(run order, Part 0, evaluation). **Own packages, course packages unchanged (since 10-05 15:45):**
+`pp_moveit_ws/src/lab9_interfaces` (`GetObject.srv`) and `pp_moveit_ws/src/lab9_pick_place` (`vision_lab9`, `brain_lab9`,
+`controller_lab9` for the Pi, `lab9_moveit.launch.py`, `lab9_real.launch.py`, `config/lab9.yaml`); what replaces what:
+[solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md](solutions/lab9_real_hardware/COURSE_PACKAGE_CHANGES.md).
+Status 10-05: runs on the robot (moves + home OK), full pick not yet verified; package split tested in simulation. Earlier plan
 (2026-10-02, A + B or B + C): `solutions/lab9_real_hardware/old_tasks_ABC/GUIDE.md`. Single-shot fallback without
 MoveIt: `solutions/lab9_simple/`. Old synthetic-data solution kept in `solutions/lab9_old_synthetic/` for reference.
 
 **What runs where:**
-- Pi: only `mycobot_controller` (serial + pump GPIO 20; valve GPIO 21 added 2026-10-05).
+- Pi: the controller only: `lab9_pick_place controller_lab9` (pump GPIO 20 + valve GPIO 21, smooth execution) or, for the
+  Part 0 baseline, the course `mycobot_controller controller`. Never both.
 - Lab PC: camera, vision, MoveIt, brain, RViz.
 - Same branch `myCobot-lab` on both, `ROS_DOMAIN_ID=47`, `~/rosenv9.sh` in every terminal, ufw allows the other host.
 
