@@ -6,7 +6,7 @@ camera/image -> calibration from 2 ArUco marker centres (PlaneMap, frame g_base)
 Services:
   /get_object        GetObject     colour + shape (+ id) -> found, id, pose of the object top, matches
   /cube_coordinates  GetCubeCoords original interface (colour -> nearest cube), so the original brain still runs
-Window keys: c = re-read the markers, s = save raw + annotated frame to ~/mycobot-project/lab9/frames/
+Window keys: c = re-read the markers, s = save raw + annotated frame to lab9_pick_place/frames/ (next to LAB9_REPORT.md)
 Config: parameter "config" (default lab9_pick_place/config/lab9.yaml); "show" (default true).
 Run: ros2 run lab9_pick_place vision_lab9
 """
@@ -27,7 +27,7 @@ from lab9_interfaces.srv import GetObject
 from ament_index_python.packages import get_package_share_directory
 
 DEFAULT_CONFIG = os.path.join(get_package_share_directory("lab9_pick_place"), "config", "lab9.yaml")   # symlink to src
-FRAMES_DIR = os.path.expanduser("~/mycobot-project/lab9/frames")
+FRAMES_DIR = os.path.normpath(os.path.join(os.path.realpath(DEFAULT_CONFIG), "..", "..", "frames"))   # next to LAB9_REPORT.md
 DRAW = {"red": (0, 0, 255), "yellow": (0, 255, 255), "green": (0, 255, 0), "blue": (255, 0, 0)}
 STALE_S = 1.0          # objects older than this are not returned (camera stopped)
 CALIB_FRAMES = 5       # frames with both markers used for the calibration (median)

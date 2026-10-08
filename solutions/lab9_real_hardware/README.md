@@ -11,7 +11,7 @@ not pursued; the PDF plan there still applies for Part 0 and the evaluations.
 
 **Status (2026-10-05 17:45):** built on the Lab PC (rebuilt 16:48 without the venv); end-to-end simulation test passed.
 On the robot: controller (`controller_lab9`, 20 Hz joint states), MoveIt, camera and `vision_lab9` ran; at 17:16 vision
-labelled `blue_cube_1`, `red_cube_1` and a yellow cube as `yellow_unknown_1` (`lab9/frames/lab9_annotated_20261005_171624.png`);
+labelled `blue_cube_1`, `red_cube_1` and a yellow cube as `yellow_unknown_1` (`pp_moveit_ws/src/lab9_pick_place/frames/lab9_annotated_20261005_171624.png`);
 the workspace box no longer matches the plate edges → re-measure the marker centres. **Not yet verified on the robot:** a
 complete pick and drop (suction contact, §7, 8 mm).
 
@@ -102,7 +102,7 @@ plate between x ≈ 135 and 250 mm, arm **not** in the old 410 mm pose (see §8,
 
 Menu: `1` pick one object (colour r/y/g/b, shape c = cube / z = cylinder, choose among matches, bin: Enter = its colour),
 `2` auto sort (all objects into their colour's bin, red → yellow → blue, ≤ 6 per colour), `3` stack cubes (red bottom,
-yellow, blue), `q` quit (pump off). Vision keys: `c` re-read the markers, `s` save raw + annotated frame to `lab9/frames/`.
+yellow, blue), `q` quit (pump off). Vision keys: `c` re-read the markers, `s` save raw + annotated frame to `pp_moveit_ws/src/lab9_pick_place/frames/` (next to `LAB9_REPORT.md`).
 
 Stop: `q` in the brain → Ctrl+C in the 3 tabs → Ctrl+C in the controller (last). End of day on the shared Pi:
 `git credential-cache exit`.

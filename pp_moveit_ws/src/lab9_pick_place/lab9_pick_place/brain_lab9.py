@@ -7,7 +7,7 @@ Changes against brain.py:
   - heights from lab9.yaml: contact = object top + nozzle offset below pump_head, hover above it, drop height per bin
   - bins per colour from lab9.yaml; menu as a loop (no recursive calls), auto sort mode
   - pick goes straight to the bin (no home detour); yaw retries because MoveIt's IK fails at random for some yaws
-  - MoveIt velocity scaling from lab9.yaml (0.3), planning/execution failures stop the sequence (pump off, home)
+  - MoveIt velocity scaling from lab9.yaml (robot.velocity_scaling, 1.0 = course value), planning/execution failures stop the sequence (pump off, home)
 Config: parameter "config" (default lab9_pick_place/config/lab9.yaml).
 Run: ros2 run lab9_pick_place brain_lab9 (Lab PC, last)
 """
