@@ -23,3 +23,11 @@ venv/
 
 # YOLO weights for Lab 8 (40 MB): not in the repo, see README "Not in this repo"
 *.pt
+
+# Lab 9 raw run data (bags, snapshots, logs, raw frames): kept out of git, exported as a zip (lab9/eval/README.md)
+lab9/eval/runs/*/bag/
+lab9/eval/runs/*/snapshots/
+lab9/eval/runs/*/logs/
+lab9/eval/runs/*/logs_pi/
+lab9/eval/runs/*/frames/
+pp_moveit_ws/src/lab9_pick_place/frames/lab9_raw_*.png

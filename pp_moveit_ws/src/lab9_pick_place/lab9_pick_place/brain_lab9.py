@@ -38,7 +38,8 @@ DOWN = [0.0, math.pi, 0.0]          # pump_head pointing down (roll, pitch, yaw)
 TOUCH = ["pump_head", "pump_box", "env_table"]
 JOINTS = ["joint2_to_joint1", "joint3_to_joint2", "joint4_to_joint3", "joint5_to_joint4", "joint6_to_joint5",
           "joint6output_to_joint6"]     # same order and sign as pymycobot get_angles (controller: get_radians)
-PLAN_FAIL = (-1, -2, -31)           # PLANNING_FAILED, INVALID_MOTION_PLAN, NO_IK_SOLUTION: nothing moved, retry is safe
+PLAN_FAIL = (-1, -2, -31, 99999)    # PLANNING_FAILED, INVALID_MOTION_PLAN, NO_IK_SOLUTION, FAILURE (OMPL "unable to
+                                    # sample goal", 10-09 yellow bin): nothing moved, retry is safe
                                     # NOT -6 TIMED_OUT: execution had started and the controller cannot be cancelled
                                     # (10-05: retrying it stacked 5 home trajectories on the real arm)
 SCENE_SETTLE_S = 0.5                # move_group applies scene topics asynchronously; planning earlier gave error -2
@@ -299,6 +300,7 @@ class BrainLab9(Node):
         x, y, z_top = res.coords[:3]
         contact = z_top + self.rb["tip_below_pump_head_m"]
         hover = contact + self.rb["hover_m"]
+        self.carry_z = hover                                  # drop() approaches the bin at this same level
         for yaw in yaw_candidates(x, y):                     # hover, then only go down if the straight line is feasible
             code = self.send_goal_pose(down(x, y, hover, yaw))
             if code not in (1,) + PLAN_FAIL:
@@ -308,9 +310,10 @@ class BrainLab9(Node):
                 break
         else:
             return self.abort(f"no plan to pick {res.id} at ({x:.3f}, {y:.3f}) (reach limit?)")
+        self.send_pump_state("on")                          # at hover, so the vacuum is ready on contact (Lab 8)
         if not self.execute(traj):
             return self.abort(f"descend to {res.id}")
-        self.send_pump_state("on")
+        time.sleep(float(self.rb.get("pick_dwell_s", 1.0)))  # let the suction build up before lifting
         self.detach_object(res.id, "env_table")
         self.attach_object(res.id, "pump_head")
         time.sleep(SCENE_SETTLE_S)
@@ -320,15 +323,35 @@ class BrainLab9(Node):
         return True
 
     def drop(self, obj_id, bin_name):
+        """10-09: go to the bin at the pick hover level (never low across the bin walls), then straight down.
+        The bins are not in the MoveIt scene; with the tool vertical the far bins are out of reach at that level,
+        so tilted tool poses (robot.carry_pitch) are tried as well (the course brain tilts bin C the same way)."""
         bx, by = self.rb["bins"][bin_name]
-        z = self.rb["drop_tip_z_m"] + self.rb["tip_below_pump_head_m"]
-        if self.move_down(bx, by, z) is None:
-            return self.abort(f"no plan to bin {bin_name}")
+        z_drop = self.rb["drop_tip_z_m"] + self.rb["tip_below_pump_head_m"]
+        z_carry = max(getattr(self, "carry_z", 0.0), z_drop + 0.035)
+        pose = None
+        for pitch in self.rb.get("carry_pitch", [math.pi]):
+            for yaw in yaw_candidates(bx, by)[:6]:
+                code = self.send_goal_pose([bx, by, z_carry, 0.0, pitch, yaw])
+                if code == 1:
+                    pose = (pitch, yaw)
+                    break
+                if code not in PLAN_FAIL:
+                    return self.abort(f"move above bin {bin_name}")
+            if pose:
+                break
+        if pose is None:
+            return self.abort(f"no plan above bin {bin_name} at z {z_carry:.3f}")
+        down_ok = self.send_cartesian_path([bx, by, z_drop, 0.0, pose[0], pose[1]], False)
+        if not down_ok:
+            self.get_logger().warn("straight descent into the bin not feasible: releasing at the carry level")
         self.send_pump_state("off")
         self.detach_object(obj_id, "pump_head")
         self.destroy_object(obj_id)
         time.sleep(SCENE_SETTLE_S)
         self.get_logger().info(f"{obj_id} dropped into bin {bin_name}")
+        if down_ok:
+            self.send_cartesian_path([bx, by, z_carry, 0.0, pose[0], pose[1]], False)   # back up before going home
         return self.go_home()
 
     def place_on(self, top_id, bottom):

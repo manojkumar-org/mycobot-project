@@ -1,0 +1,90 @@
+# events (local time, node, message)
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Publishing maintained planning scene on 'monitored_planning_scene'
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Stopping existing planning scene publisher.
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Stopped publishing maintained planning scene.
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Publishing maintained planning scene on 'monitored_planning_scene'
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Starting planning scene monitor
+14:10:05  move_group.moveit.moveit.ros.planning_scene_monitor Listening to 'planning_scene_world' for planning scene world geometry
+14:16:19  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:16:46  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:01  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:10  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:18  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:29  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:36  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:44  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:54  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:17:54  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:18:17  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:18:51  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:23:11  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:23:51  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:01  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:01  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:06  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:13  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:26  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:31  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:38  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:49  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:53  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:24:59  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:25:09  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:25:13  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:48:58  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:50:06  mycobot_brain_lab9     planning scene: ['red_cube_1', 'blue_cube_1', 'blue_unknown_1', 'yellow_cube_1']
+14:50:06  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:50:20  mycobot_brain_lab9     red_unknown_1 picked
+14:50:20  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:50:32  mycobot_brain_lab9     red_unknown_1 dropped into bin red
+14:50:32  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:50:40  mycobot_brain_lab9     planning scene: ['blue_cube_1', 'blue_cube_2', 'yellow_cube_1']
+14:50:41  mycobot_brain_lab9     planning scene: ['blue_cube_1', 'blue_cube_2', 'yellow_cube_1']
+14:50:41  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:50:56  mycobot_brain_lab9     yellow_cube_1 picked
+14:50:56  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:51:00  mycobot_brain_lab9     yellow_cube_1 dropped into bin yellow
+14:51:00  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:53:30  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:53:48  mycobot_brain_lab9     planning scene: ['blue_cylinder_1', 'blue_cube_1', 'red_cube_1', 'yellow_cube_1']
+14:53:48  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:00  mycobot_brain_lab9     red_cube_1 picked
+14:54:00  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:10  mycobot_brain_lab9     red_cube_1 dropped into bin red
+14:54:10  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:18  mycobot_brain_lab9     planning scene: ['blue_cylinder_1', 'blue_cube_1', 'yellow_cube_1']
+14:54:19  mycobot_brain_lab9     planning scene: ['blue_cylinder_1', 'blue_cube_1']
+14:54:19  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:35  mycobot_brain_lab9     yellow_cube_1 picked
+14:54:35  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:39  mycobot_brain_lab9     yellow_cube_1 dropped into bin yellow
+14:54:39  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:54:45  mycobot_brain_lab9     planning scene: ['blue_cylinder_1', 'blue_cube_1']
+14:54:47  mycobot_brain_lab9     planning scene: ['blue_cylinder_1', 'blue_cube_1']
+14:54:47  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:00  mycobot_brain_lab9     blue_cylinder_1 picked
+14:55:00  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:05  mycobot_brain_lab9     blue_cylinder_1 dropped into bin blue
+14:55:05  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:11  mycobot_brain_lab9     planning scene: ['blue_cube_1']
+14:55:11  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:23  mycobot_brain_lab9     blue_cube_1 picked
+14:55:23  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:27  mycobot_brain_lab9     blue_cube_1 dropped into bin blue
+14:55:27  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+14:55:33  mycobot_brain_lab9     planning scene: no objects
+15:00:10  mycobot_brain_lab9     planning scene: ['yellow_cube_1', 'blue_cylinder_1', 'red_cube_1']
+15:00:10  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+15:00:26  mycobot_brain_lab9     red_cube_1 picked
+15:00:26  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+15:00:30  mycobot_brain_lab9     red_cube_1 dropped into bin red
+15:00:30  move_group.moveit.moveit.ros.move_group.capability Execution of motions should always start at the robot's current state. Ignoring the state supplied as difference in the planning scene diff
+
+# time per pick (s)
+14:10:05 -> 14:50:32  2426.7 s  red_unknown_1 dropped into bin red
+14:50:32 -> 14:51:00    28.1 s  yellow_cube_1 dropped into bin yellow
+14:51:00 -> 14:54:10   190.6 s  red_cube_1 dropped into bin red
+14:54:10 -> 14:54:39    28.6 s  yellow_cube_1 dropped into bin yellow
+14:54:39 -> 14:55:05    25.7 s  blue_cylinder_1 dropped into bin blue
+14:55:05 -> 14:55:27    22.5 s  blue_cube_1 dropped into bin blue
+14:55:27 -> 15:00:30   303.1 s  red_cube_1 dropped into bin red

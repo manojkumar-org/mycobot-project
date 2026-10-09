@@ -23,6 +23,10 @@ opencv_camera ─camera/image─▶ vision_lab9 ─/get_object─▶ brain_lab9 
                                                              └─▶ move_group (lab9_moveit.launch.py) ◀─/joint_states─┘
 ```
 
+**Evidence and report:** report `pp_moveit_ws/src/lab9_pick_place/LAB9_REPORT.md`; recording tools and files
+`lab9/eval/` (see [lab9/eval/README.md](../../lab9/eval/README.md): `record_run.sh` per run, `lab9_eval_logger.py` for
+queries and shape features, `runs.csv` one line per pick, `ground_truth.csv` ruler positions).
+
 ## 0. Where the files are
 
 | Package / file (`pp_moveit_ws/src/…`) | Runs on | What |

@@ -60,6 +60,15 @@ class Controller(Node):
 
 
     # publish joint angles (with 20 Hz)
+    def read_radians(self):
+        """Lab 9 (10-09): joint angles in rad, or None if the robot did not answer this serial read.
+        pymycobot's get_radians() raises TypeError when get_angles() returns -1 (no answer)."""
+        try:
+            q = self.mc.get_radians()
+        except (TypeError, ValueError, IndexError):
+            return None
+        return q if isinstance(q, list) and len(q) == 6 else None
+
     def publish_joint_states(self):
         joint_state_msg = JointState()
         joint_state_msg.header.stamp = self.get_clock().now().to_msg()
@@ -72,7 +81,12 @@ class Controller(Node):
             "joint6_to_joint5",
             "joint6output_to_joint6"
             ]
-        joint_state_msg.position = self.mc.get_radians()
+        q = self.read_radians()
+        if q is None:                                   # Lab 9: skip this sample instead of crashing the node
+            self.get_logger().warn("no joint angles from the robot (serial read failed), sample skipped",
+                                   throttle_duration_sec=1.0)
+            return
+        joint_state_msg.position = q
 
         self.state_publisher.publish(joint_state_msg)
 
@@ -117,8 +131,8 @@ class Controller(Node):
         target = np.array(waypoints[-1].positions)
         t0 = time.time()
         while time.time() - t0 < ARRIVE_TIMEOUT:
-            q = self.mc.get_radians()
-            if isinstance(q, list) and len(q) == 6 and np.max(np.abs(np.array(q) - target)) < ARRIVE_TOL:
+            q = self.read_radians()                     # None = no answer this time: try again
+            if q is not None and np.max(np.abs(np.array(q) - target)) < ARRIVE_TOL:
                 break
             time.sleep(0.1)
         else:

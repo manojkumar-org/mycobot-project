@@ -139,7 +139,9 @@ C. PART 0 - THE ORIGINAL COURSE SYSTEM (baseline, do it first)
 D. FINAL SYSTEM (lab9_pick_place)
 ---------------------------------
 
-1. Pi, terminal 1:
+1. Pi, terminal 1 (source first: without it the controller runs on ROS domain 0, invisible to the Lab PC,
+   and brain_lab9 waits for follow_joint_trajectory forever, 10-09):
+    source ~/rosenv9.sh
     python3 ~/mycobot-project/pp_moveit_ws/src/lab9_pick_place/lab9_pick_place/controller_lab9.py
    OK = "Pump ready!" and "FJT action server ready!"
 
