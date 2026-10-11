@@ -1,0 +1,136 @@
+[INFO] [1791551924.461804875] [controller]: Joint state publisher ready!
+[INFO] [1791551924.468330144] [controller]: Pump ready!
+[INFO] [1791551924.855474019] [controller]: FJT action server ready!
+[INFO] [1791551924.867630479] [controller]: Current coordinates: [4.7, 178.3, 192.5, 176.0, -1.35, -1.89]
+[INFO] [1791551969.141465923] [controller]: Executing trajectory: 7 of 19 waypoints...
+[INFO] [1791551972.907540498] [controller]: Trajectory successfully executed!
+[INFO] [1791551972.918755141] [controller]: Current coordinates: [162.7, -2.9, 207.1, -179.73, -3.44, -177.48]
+[INFO] [1791551973.093650623] [controller]: Pump is now on!
+[INFO] [1791551973.603774831] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791551977.026631488] [controller]: Trajectory successfully executed!
+[INFO] [1791551977.037771243] [controller]: Current coordinates: [163.2, -3.4, 118.1, 178.49, 1.32, -178.33]
+[INFO] [1791551978.587097545] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791551981.981565532] [controller]: Trajectory successfully executed!
+[INFO] [1791551981.992826767] [controller]: Current coordinates: [161.8, -4.3, 207.5, -179.74, -2.24, -178.52]
+[INFO] [1791551982.188916245] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791551985.584877716] [controller]: Trajectory successfully executed!
+[INFO] [1791551985.596698183] [controller]: Current coordinates: [67.0, 167.7, 208.7, -177.56, -1.02, 179.86]
+[INFO] [1791551985.754089848] [controller]: Executing trajectory: 5 of 12 waypoints...
+[INFO] [1791551988.317559352] [controller]: Trajectory successfully executed!
+[INFO] [1791551988.328758681] [controller]: Current coordinates: [65.9, 169.4, 165.4, -178.69, -0.81, 179.8]
+[INFO] [1791551988.649240853] [controller]: Pump is now off!
+[INFO] [1791551989.372734308] [controller]: Executing trajectory: 5 of 11 waypoints...
+[INFO] [1791551991.467582488] [controller]: Trajectory successfully executed!
+[INFO] [1791551991.478770965] [controller]: Current coordinates: [66.0, 170.5, 205.7, -176.75, -0.66, 179.78]
+[INFO] [1791551991.636606645] [controller]: Executing trajectory: 9 of 25 waypoints...
+[INFO] [1791551996.850336011] [controller]: Trajectory successfully executed!
+[INFO] [1791551996.860797296] [controller]: Current coordinates: [5.7, 178.9, 191.6, 175.57, -1.71, -2.3]
+[INFO] [1791551998.437242773] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552002.454419723] [controller]: Trajectory successfully executed!
+[INFO] [1791552002.465575146] [controller]: Current coordinates: [166.2, 10.1, 206.4, -178.82, -3.51, -178.11]
+[INFO] [1791552002.648498024] [controller]: Pump is now on!
+[INFO] [1791552003.160245111] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791552006.435013138] [controller]: Trajectory successfully executed!
+[INFO] [1791552006.447100805] [controller]: Current coordinates: [167.8, 10.8, 116.6, 179.07, 0.55, -178.41]
+[INFO] [1791552007.987151925] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791552011.787985038] [controller]: Trajectory successfully executed!
+[INFO] [1791552011.800837083] [controller]: Current coordinates: [166.5, 10.0, 205.3, -178.92, -3.27, -178.45]
+[INFO] [1791552011.987015324] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791552015.371660426] [controller]: Trajectory successfully executed!
+[INFO] [1791552015.383002568] [controller]: Current coordinates: [66.0, 167.7, 208.3, -177.72, -0.58, -179.67]
+[INFO] [1791552015.566847347] [controller]: Executing trajectory: 5 of 12 waypoints...
+[INFO] [1791552017.994528656] [controller]: Trajectory successfully executed!
+[INFO] [1791552018.005701745] [controller]: Current coordinates: [66.3, 169.4, 165.2, -178.59, -0.28, 179.81]
+[INFO] [1791552018.334440622] [controller]: Pump is now off!
+[INFO] [1791552019.036560844] [controller]: Executing trajectory: 5 of 11 waypoints...
+[INFO] [1791552021.128621888] [controller]: Trajectory successfully executed!
+[INFO] [1791552021.138977860] [controller]: Current coordinates: [66.4, 170.4, 205.6, -176.66, -0.22, 179.81]
+[INFO] [1791552021.238577459] [controller]: Executing trajectory: 9 of 25 waypoints...
+[INFO] [1791552026.344121023] [controller]: Trajectory successfully executed!
+[INFO] [1791552026.356284672] [controller]: Current coordinates: [6.6, 178.6, 193.6, 176.46, -1.34, -2.15]
+[INFO] [1791552029.088496988] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552033.164926802] [controller]: Trajectory successfully executed!
+[INFO] [1791552033.177375687] [controller]: Current coordinates: [215.9, 43.4, 206.6, -178.88, -2.87, -178.1]
+[INFO] [1791552033.346399072] [controller]: Pump is now on!
+[INFO] [1791552033.856485533] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552036.440288346] [controller]: Trajectory successfully executed!
+[INFO] [1791552036.451436030] [controller]: Current coordinates: [217.2, 44.9, 117.9, 178.86, 0.51, -178.06]
+[INFO] [1791552037.986792427] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552040.744240834] [controller]: Trajectory successfully executed!
+[INFO] [1791552040.756388336] [controller]: Current coordinates: [216.0, 43.7, 205.2, -179.1, -3.18, -178.37]
+[INFO] [1791552046.186986125] [controller]: Pump is now off!
+[INFO] [1791552046.537839215] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552050.519572091] [controller]: Trajectory successfully executed!
+[INFO] [1791552050.530157524] [controller]: Current coordinates: [5.8, 179.0, 195.3, 176.81, -1.0, -1.73]
+[INFO] [1791552103.490857559] [controller]: Pump is now off!
+[INFO] [1791552111.230937060] [controller]: Pump is now off!
+[INFO] [1791552111.590868841] [controller]: Executing trajectory: 2 of 4 waypoints...
+[INFO] [1791552112.173406081] [controller]: Trajectory successfully executed!
+[INFO] [1791552112.185192554] [controller]: Current coordinates: [3.8, 179.9, 196.7, 177.79, -0.63, -1.22]
+[INFO] [1791552225.285415724] [controller]: Pump is now off!
+[INFO] [1791552225.589407536] [controller]: Executing trajectory: 2 of 3 waypoints...
+[INFO] [1791552226.325877041] [controller]: Trajectory successfully executed!
+[INFO] [1791552226.336727956] [controller]: Current coordinates: [4.3, 178.3, 192.6, 176.03, -1.2, -1.19]
+[INFO] [1791552247.388464209] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552251.144112329] [controller]: Trajectory successfully executed!
+[INFO] [1791552251.155114539] [controller]: Current coordinates: [219.7, 39.4, 207.0, -179.74, -2.01, -178.43]
+[INFO] [1791552251.355603692] [controller]: Pump is now on!
+[INFO] [1791552251.864630644] [controller]: Executing trajectory: 6 of 15 waypoints...
+[INFO] [1791552255.923572567] [controller]: Trajectory successfully executed!
+[INFO] [1791552255.934848773] [controller]: Current coordinates: [222.1, 40.9, 118.2, 178.45, 1.21, -178.59]
+[INFO] [1791552257.490267438] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552260.091872285] [controller]: Trajectory successfully executed!
+[INFO] [1791552260.102977623] [controller]: Current coordinates: [221.1, 39.7, 206.4, -179.54, -2.4, -178.79]
+[INFO] [1791552260.337433637] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552263.487471669] [controller]: Trajectory successfully executed!
+[INFO] [1791552263.497897832] [controller]: Current coordinates: [66.6, 171.2, 207.5, -177.37, -0.32, -179.74]
+[INFO] [1791552263.699578102] [controller]: Executing trajectory: 5 of 12 waypoints...
+[INFO] [1791552265.611612604] [controller]: Trajectory successfully executed!
+[INFO] [1791552265.622858459] [controller]: Current coordinates: [66.3, 169.4, 165.2, -178.59, -0.28, 179.81]
+[INFO] [1791552265.944199729] [controller]: Pump is now off!
+[INFO] [1791552266.654338365] [controller]: Executing trajectory: 5 of 11 waypoints...
+[INFO] [1791552268.742130305] [controller]: Trajectory successfully executed!
+[INFO] [1791552268.753479918] [controller]: Current coordinates: [66.6, 170.3, 204.8, -176.66, -0.31, 179.71]
+[INFO] [1791552269.492195179] [controller]: Executing trajectory: 9 of 25 waypoints...
+[INFO] [1791552276.991976439] [controller]: Trajectory successfully executed!
+[INFO] [1791552277.003380643] [controller]: Current coordinates: [3.3, 179.3, 192.1, 175.87, -1.51, -1.61]
+[INFO] [1791552279.737600317] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552283.709367032] [controller]: Trajectory successfully executed!
+[INFO] [1791552283.720000062] [controller]: Current coordinates: [151.0, 14.9, 209.7, -179.16, -1.54, -177.9]
+[INFO] [1791552283.909469962] [controller]: Pump is now on!
+[INFO] [1791552284.418501726] [controller]: Executing trajectory: 7 of 18 waypoints...
+[INFO] [1791552288.306640004] [controller]: Trajectory successfully executed!
+[INFO] [1791552288.317852100] [controller]: Current coordinates: [152.7, 15.7, 116.4, 179.3, 0.92, -178.15]
+[INFO] [1791552289.856865140] [controller]: Executing trajectory: 7 of 18 waypoints...
+[INFO] [1791552292.962777553] [controller]: Trajectory successfully executed!
+[INFO] [1791552292.974218479] [controller]: Current coordinates: [151.3, 15.0, 208.8, -179.1, -1.61, -178.6]
+[INFO] [1791552323.483933057] [controller]: Executing trajectory: 6 of 15 waypoints...
+[INFO] [1791552326.509482103] [controller]: Trajectory successfully executed!
+[INFO] [1791552326.520498296] [controller]: Current coordinates: [187.1, 171.1, 202.9, -177.03, 16.77, -179.36]
+[INFO] [1791552326.708530787] [controller]: Executing trajectory: 5 of 12 waypoints...
+[INFO] [1791552328.822548440] [controller]: Trajectory successfully executed!
+[INFO] [1791552328.833710798] [controller]: Current coordinates: [187.0, 170.8, 162.7, -179.41, 18.11, 179.91]
+[INFO] [1791552329.154223749] [controller]: Pump is now off!
+[INFO] [1791552329.886713667] [controller]: Executing trajectory: 5 of 11 waypoints...
+[INFO] [1791552331.645747284] [controller]: Trajectory successfully executed!
+[INFO] [1791552331.656573295] [controller]: Current coordinates: [187.8, 171.5, 199.7, -177.03, 16.77, -179.45]
+[INFO] [1791552331.837914439] [controller]: Executing trajectory: 9 of 23 waypoints...
+[INFO] [1791552336.320449738] [controller]: Trajectory successfully executed!
+[INFO] [1791552336.331563726] [controller]: Current coordinates: [6.3, 179.6, 192.8, 176.49, -1.94, -1.32]
+[INFO] [1791552338.887494031] [controller]: Executing trajectory: 8 of 20 waypoints...
+[INFO] [1791552342.970881484] [controller]: Trajectory successfully executed!
+[INFO] [1791552342.981610218] [controller]: Current coordinates: [201.9, -33.4, 207.1, -178.95, -2.79, -178.16]
+[INFO] [1791552343.157327966] [controller]: Pump is now on!
+[INFO] [1791552343.666756187] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552346.622637640] [controller]: Trajectory successfully executed!
+[INFO] [1791552346.634466692] [controller]: Current coordinates: [204.8, -32.7, 116.8, 179.89, 0.87, -178.06]
+[INFO] [1791552348.174587122] [controller]: Executing trajectory: 6 of 16 waypoints...
+[INFO] [1791552352.043272618] [controller]: Trajectory successfully executed!
+[INFO] [1791552352.055994268] [controller]: Current coordinates: [203.5, -33.4, 204.2, -179.39, -3.55, -178.25]
+[INFO] [1791552352.288720866] [controller]: Executing trajectory: 7 of 17 waypoints...
+[INFO] [1791552355.660103334] [controller]: Trajectory successfully executed!
+[INFO] [1791552355.671772148] [controller]: Current coordinates: [187.9, 168.8, 205.1, -177.72, -1.18, 179.89]
+[INFO] [1791552356.186708616] [controller]: Pump is now off!
+[INFO] [1791552357.038423132] [controller]: Executing trajectory: 9 of 23 waypoints...
+[INFO] [1791552361.462722760] [controller]: Trajectory successfully executed!
+[INFO] [1791552361.473410329] [controller]: Current coordinates: [7.1, 178.6, 195.4, 177.35, -1.94, -2.12]

@@ -1,0 +1,28 @@
+[INFO] [1791551601.919271581] [mycobot_brain_lab9]: config: /home/corobot/mycobot-project/pp_moveit_ws/install/lab9_pick_place/share/lab9_pick_place/config/lab9.yaml
+[INFO] [1791551602.072322056] [mycobot_brain_lab9]: waiting for /get_object (vision_lab9) ...
+[INFO] [1791551604.326462410] [mycobot_brain_lab9]: waiting for move_action (MoveIt) ...
+[INFO] [1791551604.328448410] [mycobot_brain_lab9]: waiting for /compute_cartesian_path (MoveIt) ...
+[INFO] [1791551604.330280521] [mycobot_brain_lab9]: waiting for follow_joint_trajectory (controller on the Pi) ...
+[INFO] [1791551604.332197646] [mycobot_brain_lab9]: all servers ready
+[INFO] [1791551604.834246932] [mycobot_brain_lab9]: pump off
+[INFO] [1791551604.836271324] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[INFO] [1791551642.274012688] [mycobot_brain_lab9]: planning scene: ['yellow_cube_1', 'blue_cylinder_1']
+[INFO] [1791551642.279575358] [mycobot_brain_lab9]: move to [0.161, -0.002, 0.166, 0.0, 3.142, 0.0]
+[INFO] [1791551647.045093376] [mycobot_brain_lab9]: pump on
+[INFO] [1791551656.082340005] [mycobot_brain_lab9]: red_cube_1 picked
+[INFO] [1791551656.084854075] [mycobot_brain_lab9]: move to [0.065, 0.17, 0.166, 0.0, 3.142, 0.0]
+[INFO] [1791551662.172325525] [mycobot_brain_lab9]: pump off
+[INFO] [1791551662.675453239] [mycobot_brain_lab9]: red_cube_1 dropped into bin red
+[INFO] [1791551665.364696551] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[WARN] [1791551671.267590194] [mycobot_brain_lab9]: MoveIt error code -4
+[ERROR] [1791551671.268113491] [mycobot_brain_lab9]: could not reach home posture
+[INFO] [1791551692.291125795] [mycobot_brain_lab9]: planning scene: ['red_cube_1', 'yellow_cube_1', 'blue_cylinder_1']
+[INFO] [1791551692.298367766] [mycobot_brain_lab9]: move to [0.182, -0.013, 0.166, 0.0, 3.142, 0.0]
+[INFO] [1791551696.996097022] [mycobot_brain_lab9]: pump on
+[INFO] [1791551705.879882743] [mycobot_brain_lab9]: red_cube_1 picked
+[INFO] [1791551705.883134657] [mycobot_brain_lab9]: move to [0.065, 0.17, 0.166, 0.0, 3.142, 0.0]
+[INFO] [1791551712.450734296] [mycobot_brain_lab9]: pump off
+[INFO] [1791551712.954150631] [mycobot_brain_lab9]: red_cube_1 dropped into bin red
+[INFO] [1791551715.648598190] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[WARN] [1791551720.969845357] [mycobot_brain_lab9]: MoveIt error code -4
+[ERROR] [1791551720.970838015] [mycobot_brain_lab9]: could not reach home posture

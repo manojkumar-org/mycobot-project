@@ -1,0 +1,56 @@
+[INFO] [1791550407.081901945] [mycobot_brain_lab9]: config: /home/corobot/mycobot-project/pp_moveit_ws/install/lab9_pick_place/share/lab9_pick_place/config/lab9.yaml
+[INFO] [1791550407.246677161] [mycobot_brain_lab9]: waiting for /get_object (vision_lab9) ...
+[INFO] [1791550410.251561565] [mycobot_brain_lab9]: waiting for move_action (MoveIt) ...
+[INFO] [1791550410.253537658] [mycobot_brain_lab9]: waiting for /compute_cartesian_path (MoveIt) ...
+[INFO] [1791550410.255345564] [mycobot_brain_lab9]: waiting for follow_joint_trajectory (controller on the Pi) ...
+[INFO] [1791550410.257204248] [mycobot_brain_lab9]: all servers ready
+[INFO] [1791550410.759033483] [mycobot_brain_lab9]: pump off
+[INFO] [1791550410.760750497] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[INFO] [1791550428.721370296] [mycobot_brain_lab9]: planning scene: ['blue_cylinder_1', 'blue_cube_1', 'red_cube_1', 'yellow_cube_1']
+[INFO] [1791550428.728746446] [mycobot_brain_lab9]: move to [0.217, 0.034, 0.136, 0.0, 3.142, 0.0]
+[INFO] [1791550433.640735818] [mycobot_brain_lab9]: pump on
+[INFO] [1791550440.552702701] [mycobot_brain_lab9]: red_cube_1 picked
+[INFO] [1791550440.553705413] [mycobot_brain_lab9]: move to [0.065, 0.17, 0.119, 0.0, 3.142, 0.0]
+[INFO] [1791550450.274169887] [mycobot_brain_lab9]: pump off
+[INFO] [1791550450.776517240] [mycobot_brain_lab9]: red_cube_1 dropped into bin red
+[INFO] [1791550450.778542078] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[INFO] [1791550458.554101552] [mycobot_brain_lab9]: planning scene: ['blue_cylinder_1', 'blue_cube_1', 'yellow_cube_1']
+[WARN] [1791550458.556994136] [mycobot_brain_lab9]: no object for color='red' shape='' id=''
+[WARN] [1791550459.298297179] [mycobot_brain_lab9]: no object for color='' shape='' id='yellow_unknown_1'
+[INFO] [1791550459.800356127] [mycobot_brain_lab9]: planning scene: ['blue_cylinder_1', 'blue_cube_1']
+[INFO] [1791550459.806239221] [mycobot_brain_lab9]: move to [0.239, -0.03, 0.136, 0.0, 3.142, 0.0]
+[INFO] [1791550464.784148733] [mycobot_brain_lab9]: pump on
+[INFO] [1791550475.522350824] [mycobot_brain_lab9]: yellow_cube_1 picked
+[INFO] [1791550475.523815546] [mycobot_brain_lab9]: move to [0.2, 0.17, 0.119, 0.0, 3.142, 0.0]
+[INFO] [1791550478.873408377] [mycobot_brain_lab9]: pump off
+[INFO] [1791550479.376405715] [mycobot_brain_lab9]: yellow_cube_1 dropped into bin yellow
+[INFO] [1791550479.378466896] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[INFO] [1791550485.933700153] [mycobot_brain_lab9]: planning scene: ['blue_cylinder_1', 'blue_cube_1']
+[WARN] [1791550485.941720058] [mycobot_brain_lab9]: no object for color='yellow' shape='' id=''
+[INFO] [1791550487.160325178] [mycobot_brain_lab9]: planning scene: ['blue_cylinder_1', 'blue_cube_1']
+[INFO] [1791550487.168280150] [mycobot_brain_lab9]: move to [0.156, 0.045, 0.136, 0.0, 3.142, 0.0]
+[INFO] [1791550492.633454050] [mycobot_brain_lab9]: pump on
+[INFO] [1791550500.323135525] [mycobot_brain_lab9]: blue_cylinder_1 picked
+[INFO] [1791550500.324267995] [mycobot_brain_lab9]: move to [0.185, 0.17, 0.119, 0.0, 3.142, 0.0]
+[INFO] [1791550504.631920641] [mycobot_brain_lab9]: pump off
+[INFO] [1791550505.134606283] [mycobot_brain_lab9]: blue_cylinder_1 dropped into bin blue
+[INFO] [1791550505.136628528] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[INFO] [1791550511.934250935] [mycobot_brain_lab9]: planning scene: ['blue_cube_1']
+[INFO] [1791550511.940592024] [mycobot_brain_lab9]: move to [0.167, -0.022, 0.136, 0.0, 3.142, 0.0]
+[INFO] [1791550516.391044345] [mycobot_brain_lab9]: pump on
+[INFO] [1791550523.517942753] [mycobot_brain_lab9]: blue_cube_1 picked
+[INFO] [1791550523.519345224] [mycobot_brain_lab9]: move to [0.185, 0.17, 0.119, 0.0, 3.142, 0.0]
+[INFO] [1791550527.123367803] [mycobot_brain_lab9]: pump off
+[INFO] [1791550527.626263893] [mycobot_brain_lab9]: blue_cube_1 dropped into bin blue
+[INFO] [1791550527.628334748] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]
+[WARN] [1791550532.941550206] [mycobot_brain_lab9]: no object for color='' shape='' id=''
+[INFO] [1791550533.443592016] [mycobot_brain_lab9]: planning scene: no objects
+[WARN] [1791550533.448993174] [mycobot_brain_lab9]: no object for color='blue' shape='' id=''
+[INFO] [1791550810.359990607] [mycobot_brain_lab9]: planning scene: ['yellow_cube_1', 'blue_cylinder_1', 'red_cube_1']
+[INFO] [1791550810.368494553] [mycobot_brain_lab9]: move to [0.234, 0.015, 0.136, 0.0, 3.142, 0.0]
+[INFO] [1791550815.830137727] [mycobot_brain_lab9]: pump on
+[INFO] [1791550826.483095350] [mycobot_brain_lab9]: red_cube_1 picked
+[INFO] [1791550826.487865021] [mycobot_brain_lab9]: move to [0.065, 0.17, 0.119, 0.0, 3.142, 0.0]
+[INFO] [1791550830.277992934] [mycobot_brain_lab9]: pump off
+[INFO] [1791550830.780534662] [mycobot_brain_lab9]: red_cube_1 dropped into bin red
+[INFO] [1791550830.782587368] [mycobot_brain_lab9]: move to joints [109.86, 1.58, -93.51, 1.14, 0.08, 20.03]

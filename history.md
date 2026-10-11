@@ -2,6 +2,80 @@
 
 Compact log of what changed, newest first. Details and current state: [gameplan.md](gameplan.md), setup: [README.md](README.md).
 
+## 2026-10-09 (Lab PC, Lab 9 robot runs: auto sort works)
+
+Written 2026-10-11. Sources: ROS logs in `lab9/lab9_export_2026-10-09/` (untracked, 55 MB), `lab9/eval/runs/*/timeline.txt`
+and `analysis.md`, commits `07f9253` and `93aa326`. `~` = approximate.
+
+**Setup and fixes**
+- 14:10 one session of MoveIt + camera + `vision_lab9`, until 15:40.
+- Calibration came out about 180° wrong twice: 14:10 at −93.1° and 14:45 at −91.3°. Pressing `c` fixed both (89.2°, 90.5°,
+  88.4°). Cause not found. Between the good calibrations the point under the camera moved 0.207–0.220 m in x.
+- Controller started on the Pi without `source ~/rosenv9.sh` → ROS domain 0 → the brain waited for
+  `follow_joint_trajectory` forever. `LAB9_RUN_STEPS.txt` now sources the file first.
+- Contact height: with `tip_below_pump_head_m` 0.028 the flange stopped 9 mm high (planned 115, controller 124.2 mm), so
+  there was no suction. Fixes: `tip_below` 0.019; pump on at hover; 1 s dwell at contact; `hover_m` 0.100 (Mano).
+
+**Runs** (auto sort, menu 2)
+- 14:50–15:00 `sort_test`: 7 drops with the scene re-laid by hand between them (about 23–29 s per pick).
+  At 14:50 `red_unknown_1` was picked: auto sort asks by colour only, so `unknown` objects are picked too.
+- 15:14–15:15 `sort_test2`: red dropped, then the home posture failed twice with MoveIt −4 (CONTROL_FAILED). Probably the
+  controller crashed on a failed serial read (−1); `07f9253` fixes that. The Pi log of this run was not kept.
+- 15:20 `sort_test3`: above the yellow bin (0.200, 0.170) MoveIt returned 99999 (FAILURE, OMPL could not sample the goal)
+  → the sequence stopped. Fixes:
+  - 99999 is now retried like a planning failure (`PLAN_FAIL`);
+  - `drop()` crosses to the bin at the pick hover level, then goes straight down;
+  - `carry_pitch` can tilt the tool.
+- 15:24–15:26 `sort_test4`: 3/3 in the bins, mean 29.3 s per pick.
+  - Yellow: placed only after 6× 99999, carried tilted (pitch 2.80).
+  - Blue: the descent into the bin was 0 % feasible, so it was released at the carry level.
+- 15:35 yellow again 6× 99999. Then the tilt was removed on request (`carry_pitch` vertical only), and the yellow bin moved
+  to (0.185, 0.170), the same physical bin as blue.
+- 15:38–15:40 **`sort_test6`: 3/3 placed, tool vertical, 21.3 / 19.4 / 24.2 s per pick (mean 21.6 s)**. `start_end.jpg`:
+  red in the red bin, yellow and blue cylinder in the shared bin; a blue cube outside the plate was ignored, as intended.
+- 15:45 `07f9253` (fixes, evidence, `record_run.sh`); 15:54 `93aa326` (`lab9_analyse_run.py`, `lab9_snapshots.py`).
+
+**Measured**
+- **Contact height.** The flange read by pymycobot was at z 116.4–118.3 mm against 106 mm planned by MoveIt. The two
+  numbers are in different frames: MoveIt's model puts the flange about 7.8 mm lower than pymycobot (10-05).
+- **xy offset.** Actual − target over 6 picks: +0.9…+3.8 mm in x and **+4.8…+6.3 mm in y**. This is a constant offset,
+  not scatter.
+- **Shape labels (vision log, 7186 samples).** On the plate were red and yellow cubes and a blue cylinder (plus a blue
+  cube).
+  - The red and yellow cube samples were labelled cube 52 %, unknown 29 %, and **cylinder 19 %**. Blur or tilt rounds the
+    cube outline to fill 0.75–0.82 with 4–5 vertices, and the cylinder rule does not check vertices; e.g.
+    `yellow_cylinder_1` at 15:35:14 and 15:39:12.
+  - The blue cylinder had fill p5 0.83 / median 0.88, and ≥ 6 vertices in 97 % of samples.
+  - A cylinder rule of fill ≥ 0.80 would mislabel 0.8 % of the cube samples and 1.4 % of the cylinder samples.
+  - The log prints only on scene changes, so arm motion dominates the samples.
+- **False detections.** The green LED matrix of the end effector was detected as green objects whenever it was over the
+  plate (15:14:07, 15:35:51).
+- **Joint states.** `joints_pump.png` shows that `/joint_states` pauses while a trajectory executes. Twice the controller
+  logged "arm not at the last waypoint after 5 s".
+
+**Open, in order:**
+1. Part 0 baseline: still not run.
+2. Fill in `notes.md` per run, the ruler and miss columns of `runs.csv`, and `ground_truth.csv`.
+3. Decide the shape rule (vertex check or fill ≥ ~0.80 for cylinders).
+4. Find the cause of the 180° calibration flips and add a guard.
+5. Find the cause of the +5.6 mm y offset.
+6. Record the `/get_object` queries (`lab9_eval_logger.py query`).
+7. Bins A–D and `exit`.
+8. Write the report.
+
+## 2026-10-08 (home laptop, Lab 9 report)
+- Report moved to `pp_moveit_ws/src/lab9_pick_place/LAB9_REPORT.md`, with `frames/` next to it. `vision_lab9` saves frames
+  there (`FRAMES_DIR`).
+- Added to the report:
+  - §1.2: programs and start order.
+  - §1.3 and Appendix D: comparison with the course packages. The course `vision.py`, run offline on the saved frames,
+    detects nothing: the objects are 36–46 px wide (its minimum is 50), blue needs S, V ≥ 200, and skin falls in its red
+    range.
+  - Appendix C: code walkthrough.
+  - §3.2, §3.3 and §3.5 filled from the 10-05 frames.
+- New files: `LAB9_RUN_STEPS.txt` (setup to run, plain text) and `solutions/lab9_real_hardware/lab9_eval_logger.py`.
+  Committed as `f7f05f0` (18:09).
+
 ## 2026-10-05 (Lab PC, Lab 9 on the robot)
 
 Times from git commits, ROS logs, file times and the session; `~` = approximate.
